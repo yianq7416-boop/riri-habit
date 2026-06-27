@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f8f4">
+  <meta name="description" content="一个轻量、好用的每日习惯打卡应用">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="日日">
+  <title>日日 · 习惯打卡</title>
+  <link rel="manifest" href="manifest.webmanifest?v=5">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#today" aria-label="日日首页">
+        <span class="brand-mark">日</span>
+        <span>日日</span>
+      </a>
+      <nav class="desktop-nav" aria-label="主导航">
+        <button class="nav-item active" data-view="today">今天</button>
+        <button class="nav-item" data-view="history">记录</button>
+        <button class="nav-item" data-view="habits">习惯</button>
+      </nav>
+      <button class="icon-button" id="themeToggle" aria-label="切换深色模式" title="切换深色模式">
+        <span aria-hidden="true">☾</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="view active" id="todayView">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow" id="fullDate"></p>
+            <h1 id="greeting">今天，也稳稳向前</h1>
+            <p class="subcopy">不追赶完美，只记录每一次做到。</p>
+          </div>
+          <div class="daily-ring" id="dailyRing" aria-label="今日完成进度">
+            <div><strong id="progressPercent">0%</strong><span>今日</span></div>
+          </div>
+        </div>
+
+        <section class="summary-strip" aria-label="打卡概览">
+          <div><span class="metric-icon coral">◆</span><strong id="doneCount">0</strong><small>今日完成</small></div>
+          <div><span class="metric-icon yellow">↗</span><strong id="bestStreak">0</strong><small>最长连续</small></div>
+          <div><span class="metric-icon blue">●</span><strong id="weekRate">0%</strong><small>本周完成率</small></div>
+        </section>
+
+        <div class="section-heading">
+          <div><p class="eyebrow">TODAY'S HABITS</p><h2>今日清单</h2></div>
+          <button class="text-button" id="quickAddButton">＋ 添加习惯</button>
+        </div>
+        <div class="habit-list" id="habitList"></div>
+        <div class="empty-state" id="todayEmpty" hidden>
+          <div class="empty-visual"><span>✓</span></div>
+          <h3>从一个小习惯开始</h3>
+          <p>每天做到一点点，就已经很了不起。</p>
+          <button class="primary-button" data-open-add>添加第一个习惯</button>
+        </div>
+
+        <section class="week-panel">
+          <div class="section-heading compact">
+            <div><p class="eyebrow">THIS WEEK</p><h2>本周节奏</h2></div>
+            <span id="weekSummary">0 次完成</span>
+          </div>
+          <div class="week-chart" id="weekChart"></div>
+        </section>
+      </section>
+
+      <section class="view" id="historyView">
+        <div class="page-heading simple">
+          <div><p class="eyebrow">HISTORY</p><h1>记录</h1><p class="subcopy">看见那些被认真度过的日子。</p></div>
+        </div>
+        <section class="calendar-panel">
+          <div class="calendar-header">
+            <button class="icon-button" id="prevMonth" aria-label="上个月" title="上个月">‹</button>
+            <h2 id="calendarTitle"></h2>
+            <button class="icon-button" id="nextMonth" aria-label="下个月" title="下个月">›</button>
+          </div>
+          <div class="calendar-weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="calendar-legend"><span><i class="dot low"></i>有记录</span><span><i class="dot full"></i>全部完成</span></div>
+        </section>
+      </section>
+
+      <section class="view" id="habitsView">
+        <div class="page-heading simple">
+          <div><p class="eyebrow">MY HABITS</p><h1>我的习惯</h1><p class="subcopy">保留真正重要的事，其他的可以慢慢来。</p></div>
+          <button class="primary-button" data-open-add>＋ 新建习惯</button>
+        </div>
+        <section class="reminder-panel" aria-labelledby="reminderTitle">
+          <div class="reminder-icon" aria-hidden="true">铃</div>
+          <div class="reminder-copy">
+            <p class="eyebrow">DAILY REMINDER</p>
+            <h2 id="reminderTitle">每日提醒</h2>
+            <p>到点由手机日历提醒，不用一直开着网页。</p>
+          </div>
+          <label class="time-field">提醒时间<input type="time" id="reminderTime" value="20:30"></label>
+          <button class="primary-button" id="addCalendarReminder">添加到手机日历</button>
+        </section>
+        <div class="manage-list" id="manageList"></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="手机端导航">
+      <button class="nav-item active" data-view="today"><span>⌂</span>今天</button>
+      <button class="nav-item" data-view="history"><span>▦</span>记录</button>
+      <button class="nav-item" data-view="habits"><span>◎</span>习惯</button>
+    </nav>
+  </div>
+
+  <dialog id="habitDialog">
+    <form method="dialog" id="habitForm">
+      <div class="dialog-header"><div><p class="eyebrow">NEW HABIT</p><h2>添加一个习惯</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <label>习惯名称<input id="habitName" maxlength="18" placeholder="例如：喝够八杯水" required></label>
+      <fieldset><legend>选择图标</legend><div class="option-grid icon-options" id="iconOptions"></div></fieldset>
+      <fieldset><legend>选择颜色</legend><div class="option-grid color-options" id="colorOptions"></div></fieldset>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveHabit" value="default">添加习惯</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js?v=5"></script>
+</body>
+</html>

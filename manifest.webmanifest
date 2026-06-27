@@ -1,0 +1,13 @@
+{
+  "name": "日日 · 习惯打卡",
+  "short_name": "日日",
+  "description": "轻量、好用的每日习惯打卡应用",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f0",
+  "theme_color": "#f4f5f0",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
