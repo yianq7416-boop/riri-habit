@@ -1,6 +1,17 @@
 const STORAGE_KEY = "riri-habit-state-v1";
 const icons = ["水", "步", "书", "眠", "心", "练", "果", "记"];
 const colors = ["#1e8a65", "#e06c55", "#d3a22f", "#4f83c2", "#8a68ae", "#d45d88"];
+const surprises = [
+  ["两分钟挑战", "站起来伸个懒腰，再慢慢喝一杯水。"],
+  ["今日问题", "如果今天只做好一件事，你会选什么？"],
+  ["小小冒险", "走一条平时不会走的路，留意三个新细节。"],
+  ["放松许可", "今晚可以理直气壮地留 20 分钟什么都不做。"],
+  ["感官任务", "闭上眼睛听完一首歌，中途不碰手机。"],
+  ["温柔提醒", "进度慢也算前进。今天不需要向任何人证明什么。"],
+  ["微小整理", "只整理手边一平方米，完成就停。"],
+  ["稀有卡片", "给未来的自己留一句明天会想看到的话。"]
+];
+const bonusSurprises = ["奖励：今天完成一件小事后，就允许自己早点收工。", "隐藏任务：给一个很久没联系的人发句问候。", "幸运掉落：去吃一样你真正喜欢的小东西。", "彩蛋：拍下今天最顺眼的一束光。"];
 
 function makeId() {
   if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -82,6 +93,42 @@ function renderToday() {
     </article>`;
   }).join("");
   document.querySelector("#todayEmpty").hidden = state.habits.length > 0;
+  renderDelight(today, done.length);
+}
+
+function renderDelight(today, doneCount) {
+  const dayNumber = Number(today.replaceAll("-", ""));
+  const surprise = surprises[dayNumber % surprises.length];
+  const opened = state.mysteryOpened === today;
+  const bonusOpened = state.bonusOpened === today;
+  const card = document.querySelector("#mysteryCard");
+  card.classList.toggle("opened", opened);
+  document.querySelector("#mysteryType").textContent = surprise[0];
+  document.querySelector("#mysteryText").textContent = surprise[1];
+  document.querySelector("#rarityTag").textContent = surprise[0] === "稀有卡片" ? "稀有掉落" : "今日限定";
+  const openButton = document.querySelector("#openMystery");
+  openButton.textContent = opened ? "今天的盲盒已拆开" : "拆开今天的小惊喜";
+  openButton.disabled = opened;
+  const bonusButton = document.querySelector("#openBonus");
+  bonusButton.hidden = !opened;
+  bonusButton.disabled = bonusOpened;
+  bonusButton.textContent = bonusOpened ? bonusSurprises[dayNumber % bonusSurprises.length] : doneCount ? "打开打卡奖励卡" : "完成任意一次打卡，解锁奖励卡";
+  bonusButton.dataset.locked = doneCount ? "false" : "true";
+
+  const total = Object.values(state.checks).reduce((sum, ids) => sum + ids.filter(id => state.habits.some(h => h.id === id)).length, 0);
+  const stages = [0, 3, 8, 16, 30];
+  let stage = stages.findLastIndex(value => total >= value);
+  stage = Math.max(0, stage);
+  const levels = ["一颗种子", "冒出嫩芽", "长出新叶", "绿意渐浓", "花开啦"];
+  const copies = ["你的第一颗种子已经埋下。一次打卡，就是一点阳光。", "小芽探出了头，它记得你每一次回来。", "叶子正在舒展，慢慢来，它不会因为断签而消失。", "这里已经有了一小片绿意，都是你做过的小事。", "花园开花了。之后的每次打卡，都会让它更热闹。"];
+  document.querySelector("#gardenLevel").textContent = levels[stage];
+  document.querySelector("#gardenCopy").textContent = `${copies[stage]} · 累计 ${total} 次`;
+  const scene = document.querySelector("#gardenScene");
+  scene.className = `garden-scene stage-${stage}`;
+  const next = stages[Math.min(stage + 1, stages.length - 1)];
+  const previous = stages[stage];
+  const progress = stage === stages.length - 1 ? 100 : Math.round((total - previous) / (next - previous) * 100);
+  document.querySelector("#gardenProgress").style.width = `${Math.max(4, progress)}%`;
 }
 
 function hourGreeting(hour) {
@@ -145,6 +192,19 @@ function toggleCheck(id) {
   state.checks[key] = [...checks];
   saveState(); render();
   showToast(adding ? "打卡成功，今天又向前一步" : "已取消今天的打卡");
+}
+
+function openMystery() {
+  const today = dateKey(new Date());
+  state.mysteryOpened = today;
+  saveState(); render(); showToast("今日盲盒已打开");
+}
+
+function openBonus() {
+  const button = document.querySelector("#openBonus");
+  if (button.dataset.locked === "true") { showToast("先完成任意一次打卡，就能解锁"); return; }
+  state.bonusOpened = dateKey(new Date());
+  saveState(); render(); showToast("发现一张隐藏奖励卡");
 }
 
 function habitStreak(id) {
@@ -263,6 +323,9 @@ document.addEventListener("click", event => {
 document.querySelector("#saveHabit").addEventListener("click", event => { event.preventDefault(); addHabit(); });
 document.querySelector("#habitForm").addEventListener("submit", event => { event.preventDefault(); addHabit(); });
 document.querySelector("#themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; saveState(); render(); });
+document.querySelector("#openMystery").addEventListener("click", openMystery);
+document.querySelector("#mysteryCard").addEventListener("click", () => { if (state.mysteryOpened !== dateKey(new Date())) openMystery(); });
+document.querySelector("#openBonus").addEventListener("click", openBonus);
 document.querySelector("#reminderTime").value = state.reminderTime || "20:30";
 document.querySelector("#reminderTime").addEventListener("change", event => { state.reminderTime = event.target.value; saveState(); });
 document.querySelector("#addCalendarReminder").addEventListener("click", addCalendarReminder);

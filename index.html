@@ -48,6 +48,30 @@
           <div><span class="metric-icon blue">●</span><strong id="weekRate">0%</strong><small>本周完成率</small></div>
         </section>
 
+        <section class="delight-grid" aria-label="每日惊喜与成长花园">
+          <article class="mystery-panel" id="mysteryPanel">
+            <div class="delight-top"><div><p class="eyebrow">DAILY SURPRISE</p><h2>今日盲盒</h2></div><span class="rarity-tag" id="rarityTag">今日限定</span></div>
+            <div class="mystery-card" id="mysteryCard">
+              <div class="mystery-seal" aria-hidden="true">?</div>
+              <div class="mystery-content"><small id="mysteryType"></small><strong id="mysteryText"></strong></div>
+            </div>
+            <button class="primary-button" id="openMystery">拆开今天的小惊喜</button>
+            <button class="bonus-button" id="openBonus" hidden></button>
+          </article>
+          <article class="garden-panel">
+            <div class="delight-top"><div><p class="eyebrow">MY LITTLE GARDEN</p><h2>我的小花园</h2></div><span id="gardenLevel">种子期</span></div>
+            <div class="garden-scene" id="gardenScene" aria-label="打卡成长花园">
+              <div class="sun"></div><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div>
+              <div class="plant plant-one"><i></i><b></b><em></em></div>
+              <div class="plant plant-two"><i></i><b></b><em></em></div>
+              <div class="plant plant-three"><i></i><b></b><em></em></div>
+              <div class="garden-soil"></div>
+            </div>
+            <p class="garden-copy" id="gardenCopy"></p>
+            <div class="garden-progress"><i id="gardenProgress"></i></div>
+          </article>
+        </section>
+
         <div class="section-heading">
           <div><p class="eyebrow">TODAY'S HABITS</p><h2>今日清单</h2></div>
           <button class="text-button" id="quickAddButton">＋ 添加习惯</button>
@@ -121,6 +145,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
