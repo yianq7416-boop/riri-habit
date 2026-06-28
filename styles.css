@@ -110,7 +110,16 @@ h3 { margin: 0; }
 .check-button { width: 42px; aspect-ratio: 1; border: 2px solid var(--line); border-radius: 50%; background: var(--surface); cursor: pointer; font-weight: 900; color: transparent; }
 .done .check-button { border-color: var(--habit-color); background: var(--habit-color); color: white; }
 .week-panel, .calendar-panel { margin-top: 52px; padding: 28px; border: 1px solid var(--line); background: var(--surface); }
-.week-chart { height: 190px; display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 14px; padding-top: 20px; }
+.week-chart { display: grid; gap: 10px; padding-top: 20px; }
+.week-insights { display: grid; grid-template-columns: .8fr .8fr 1.4fr; gap: 1px; margin-bottom: 8px; border: 1px solid var(--line); background: var(--line); }
+.week-insights > div { min-height: 78px; display: grid; align-content: center; gap: 5px; padding: 14px 16px; background: var(--bg); }
+.week-insights small { color: var(--muted); }
+.week-insights strong { font-size: 14px; }
+.week-habit-row { display: grid; grid-template-columns: 36px minmax(120px, .8fr) minmax(120px, 2fr) 62px; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.habit-dot { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 5px; color: white; }
+.week-progress { height: 8px; overflow: hidden; border-radius: 4px; background: var(--surface-2); }
+.week-progress i { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+.week-habit-row b { color: var(--muted); font-size: 12px; text-align: right; }
 .bar-column { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: end; gap: 8px; color: var(--muted); font-size: 11px; }
 .bar-track { width: min(42px, 65%); height: 130px; display: flex; align-items: end; background: var(--surface-2); border-radius: 5px 5px 2px 2px; overflow: hidden; }
 .bar-fill { width: 100%; min-height: 4px; background: var(--primary); border-radius: 5px 5px 0 0; transition: height .4s ease; }
@@ -248,6 +257,10 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .habit-card { min-height: 84px; padding: 13px 15px; }
   .week-panel { margin-top: 38px; padding: 20px 14px; }
   .week-chart { gap: 6px; }
+  .week-insights { grid-template-columns: 1fr 1fr; }
+  .week-insights > div:last-child { grid-column: 1 / -1; }
+  .week-habit-row { grid-template-columns: 34px 1fr 54px; gap: 8px; }
+  .week-habit-row .week-progress { grid-column: 2 / -1; }
   .bar-track { width: 65%; }
   .calendar-panel { padding: 18px 10px; }
   .calendar-grid, .calendar-weekdays { gap: 3px; }

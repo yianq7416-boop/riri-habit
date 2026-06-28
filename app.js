@@ -210,16 +210,26 @@ function renderWeek() {
   const today = new Date();
   const monday = new Date(today);
   monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  const labels = ["一", "二", "三", "四", "五", "六", "日"];
+  const elapsed = ((today.getDay() + 6) % 7) + 1;
   let total = 0;
-  document.querySelector("#weekChart").innerHTML = labels.map((label, index) => {
-    const date = new Date(monday); date.setDate(monday.getDate() + index);
-    const count = checkedFor(dateKey(date)).filter(id => state.habits.some(h => h.id === id)).length;
+  const progress = state.habits.map(habit => {
+    let count = 0;
+    for (let index = 0; index < elapsed; index++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      if (isChecked(habit.id, dateKey(date))) count++;
+    }
     total += count;
-    const height = state.habits.length ? Math.max(3, count / state.habits.length * 100) : 3;
-    return `<div class="bar-column ${dateKey(date) === dateKey(today) ? "today" : ""}"><div class="bar-track" title="${count} 次完成"><div class="bar-fill" style="height:${height}%"></div></div><span>${label}</span></div>`;
-  }).join("");
-  document.querySelector("#weekSummary").textContent = `${total} 次完成`;
+    return { habit, count, percent: Math.round(count / elapsed * 100) };
+  }).sort((a, b) => b.percent - a.percent);
+  const strongest = progress[0];
+  const weakest = progress[progress.length - 1];
+  const rate = state.habits.length ? Math.round(total / (state.habits.length * elapsed) * 100) : 0;
+  const advice = !state.habits.length ? "先添加一个容易做到的小习惯" : rate >= 80 ? "状态很稳，保持现在的节奏就好" : rate >= 50 ? `明天优先完成「${weakest.habit.name}」` : "先选一件最小的事完成，不用一次补齐";
+  const insights = `<div class="week-insights"><div><small>最稳定</small><strong>${strongest ? escapeHtml(strongest.habit.name) : "暂无"}</strong></div><div><small>需要关注</small><strong>${weakest ? escapeHtml(weakest.habit.name) : "暂无"}</strong></div><div><small>本周建议</small><strong>${escapeHtml(advice)}</strong></div></div>`;
+  const rows = progress.map(item => `<div class="week-habit-row"><span class="habit-dot" style="background:${item.habit.color}">${item.habit.icon}</span><strong>${escapeHtml(item.habit.name)}</strong><div class="week-progress"><i style="width:${item.percent}%"></i></div><b>${item.count}/${elapsed} 天</b></div>`).join("");
+  document.querySelector("#weekChart").innerHTML = insights + (rows || `<p class="planner-empty">添加习惯后，这里会生成本周复盘</p>`);
+  document.querySelector("#weekSummary").textContent = `${rate}% 完成率`;
 }
 
 function startOfWeek(date) {
