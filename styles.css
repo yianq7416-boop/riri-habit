@@ -29,6 +29,8 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(30, 107, 80,
 .desktop-nav .nav-item { padding: 9px 16px; border-radius: 7px; }
 .desktop-nav .nav-item.active { color: var(--primary); background: var(--primary-soft); }
 .icon-button { width: 40px; aspect-ratio: 1; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); cursor: pointer; font-size: 22px; }
+.sync-button { margin-left: auto; }
+.sync-button.connected { color: var(--primary); background: var(--primary-soft); }
 .view { display: none; animation: appear .28s ease; }
 .view.active { display: block; }
 @keyframes appear { from { opacity: 0; transform: translateY(5px); } }
@@ -218,6 +220,11 @@ fieldset { margin: 22px 0 0; padding: 0; border: 0; }
 .option-button.selected { border: 2px solid var(--primary); }
 .color-options .option-button { background: var(--option-color); }
 .dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 28px; }
+.sync-explain { margin: -10px 0 20px; color: var(--muted); line-height: 1.6; }
+.sync-code-actions { display: flex; gap: 8px; margin-top: 10px; }
+.sync-status { min-height: 42px; margin-top: 18px; padding: 11px 13px; border-radius: 5px; background: var(--surface-2); color: var(--muted); font-size: 12px; }
+.sync-status.success { color: var(--primary); }
+.sync-status.error { color: var(--coral); }
 .toast { position: fixed; left: 50%; bottom: 30px; z-index: 20; padding: 11px 16px; border-radius: 6px; background: var(--text); color: var(--bg); opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: .22s; font-size: 13px; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 

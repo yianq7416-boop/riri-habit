@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
   <div class="app-shell">
@@ -25,6 +25,7 @@
         <button class="nav-item" data-view="habits">习惯</button>
         <button class="nav-item" data-view="goals">目标</button>
       </nav>
+      <button class="icon-button sync-button" id="syncButton" aria-label="数据同步" title="数据同步"><span aria-hidden="true">↻</span></button>
       <button class="icon-button" id="themeToggle" aria-label="切换深色模式" title="切换深色模式">
         <span aria-hidden="true">☾</span>
       </button>
@@ -196,7 +197,17 @@
       <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveTask" value="default">添加任务</button></div>
     </form>
   </dialog>
+  <dialog id="syncDialog">
+    <form method="dialog" id="syncForm">
+      <div class="dialog-header"><div><p class="eyebrow">CLOUD SYNC</p><h2>同步手机与电脑</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <p class="sync-explain">两台设备填写同一个同步码，数据就会自动保持一致。</p>
+      <label>同步码<input id="syncCode" autocomplete="off" maxlength="64" placeholder="输入或生成同步码"></label>
+      <div class="sync-code-actions"><button class="secondary-button" id="generateSyncCode" type="button">生成同步码</button><button class="secondary-button" id="copySyncCode" type="button">复制</button></div>
+      <p class="sync-status" id="syncStatus">尚未连接</p>
+      <div class="dialog-actions"><button class="text-button" id="disconnectSync" type="button" hidden>断开</button><button class="secondary-button" id="syncNow" type="button" hidden>立即同步</button><button class="primary-button" id="connectSync" type="button">连接同步</button></div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=22"></script>
+  <script src="app.js?v=23"></script>
 </body>
 </html>

@@ -1,4 +1,7 @@
 const STORAGE_KEY = "riri-habit-state-v1";
+const SYNC_KEY_STORAGE = "riri-habit-sync-key";
+const SUPABASE_URL = "https://vxafxavnhtucexxcfjdk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zKu6CHH83OQTBuXATaRcQQ_S2a7fH1C";
 const DEFAULT_LAYOUT = ["summary", "shortcuts", "planner", "focus", "habits", "week"];
 const icons = ["水", "步", "书", "眠", "心", "练", "果", "记"];
 const colors = ["#1e8a65", "#e06c55", "#d3a22f", "#4f83c2", "#8a68ae", "#d45d88"];
@@ -42,6 +45,9 @@ let selectedIcon = icons[0];
 let selectedColor = colors[0];
 let currentGoalFilter = "all";
 let layoutEditing = false;
+let syncKey = localStorage.getItem(SYNC_KEY_STORAGE) || "";
+let syncTimer;
+let syncing = false;
 
 function dateKey(date) {
   const year = date.getFullYear();
@@ -70,7 +76,83 @@ function createSeed() {
   return copy;
 }
 
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState(options = {}) {
+  if (!options.keepTimestamp) state.updatedAt = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!options.skipSync) queueCloudPush();
+}
+
+function syncHeaders() {
+  return { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" };
+}
+
+async function syncRequest(name, body) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, { method: "POST", headers: syncHeaders(), body: JSON.stringify(body) });
+  if (!response.ok) throw new Error(`同步服务返回 ${response.status}`);
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
+}
+
+function setSyncStatus(message, type = "") {
+  const status = document.querySelector("#syncStatus");
+  if (status) { status.textContent = message; status.className = `sync-status ${type}`; }
+  document.querySelector("#syncButton")?.classList.toggle("connected", Boolean(syncKey));
+  document.querySelector("#disconnectSync")?.toggleAttribute("hidden", !syncKey);
+  document.querySelector("#syncNow")?.toggleAttribute("hidden", !syncKey);
+}
+
+async function cloudPush() {
+  if (!syncKey || syncing) return;
+  syncing = true;
+  try {
+    state.updatedAt ||= new Date().toISOString();
+    await syncRequest("sync_push", { p_key: syncKey, p_payload: state });
+    setSyncStatus(`已同步 · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+  } catch (error) { setSyncStatus(`同步失败：${error.message}`, "error"); }
+  finally { syncing = false; }
+}
+
+function queueCloudPush() {
+  if (!syncKey) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(cloudPush, 900);
+}
+
+async function cloudPull(force = false) {
+  if (!syncKey || syncing) return;
+  syncing = true;
+  setSyncStatus("正在同步…");
+  try {
+    const remote = await syncRequest("sync_pull", { p_key: syncKey });
+    if (!remote) {
+      syncing = false;
+      await cloudPush();
+      return;
+    }
+    const remoteTime = Date.parse(remote.updatedAt || 0);
+    const localTime = Date.parse(state.updatedAt || 0);
+    if (force || remoteTime > localTime) {
+      state = remote;
+      state.layout = normalizeLayout(state.layout);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    } else if (localTime > remoteTime) {
+      syncing = false;
+      await cloudPush();
+      return;
+    }
+    setSyncStatus(`已同步 · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+  } catch (error) { setSyncStatus(`同步失败：${error.message}`, "error"); }
+  finally { syncing = false; }
+}
+
+async function connectCloud() {
+  const value = document.querySelector("#syncCode").value.trim();
+  if (value.length < 16) { setSyncStatus("同步码至少需要 16 个字符", "error"); return; }
+  syncKey = value;
+  localStorage.setItem(SYNC_KEY_STORAGE, syncKey);
+  await cloudPull();
+}
 function normalizeLayout(layout) {
   const valid = Array.isArray(layout) ? layout.filter(item => DEFAULT_LAYOUT.includes(item)) : [];
   const merged = [...new Set([...valid, ...DEFAULT_LAYOUT])];
@@ -604,6 +686,30 @@ document.querySelector("#addPlanTask").addEventListener("click", openTaskDialog)
 document.querySelector("#plannerPrev").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() - 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() - 1); } renderPlanner(); });
 document.querySelector("#plannerNext").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() + 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() + 1); } renderPlanner(); });
 document.querySelector("#plannerToday").addEventListener("click", () => { plannerCursor = new Date(); selectedPlanDate = dateKey(plannerCursor); renderPlanner(); });
+document.querySelector("#syncButton").addEventListener("click", () => {
+  document.querySelector("#syncCode").value = syncKey;
+  setSyncStatus(syncKey ? "已连接，正在自动同步" : "尚未连接", syncKey ? "success" : "");
+  document.querySelector("#syncDialog").showModal();
+});
+document.querySelector("#generateSyncCode").addEventListener("click", () => {
+  const values = new Uint32Array(4); crypto.getRandomValues(values);
+  document.querySelector("#syncCode").value = [...values].map(value => value.toString(16).padStart(8, "0")).join("-");
+  setSyncStatus("同步码已生成，请连接后复制到另一台设备");
+});
+document.querySelector("#copySyncCode").addEventListener("click", async () => {
+  const value = document.querySelector("#syncCode").value.trim();
+  if (!value) { setSyncStatus("请先输入或生成同步码", "error"); return; }
+  try { await navigator.clipboard.writeText(value); setSyncStatus("同步码已复制", "success"); }
+  catch { setSyncStatus("复制失败，请长按同步码手动复制", "error"); }
+});
+document.querySelector("#connectSync").addEventListener("click", connectCloud);
+document.querySelector("#syncNow").addEventListener("click", () => cloudPull());
+document.querySelector("#disconnectSync").addEventListener("click", () => {
+  syncKey = ""; localStorage.removeItem(SYNC_KEY_STORAGE); document.querySelector("#syncCode").value = ""; setSyncStatus("已断开同步");
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && syncKey) cloudPull(); });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js");
 render();
+setSyncStatus(syncKey ? "已连接，正在自动同步" : "尚未连接", syncKey ? "success" : "");
+if (syncKey) cloudPull();
