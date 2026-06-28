@@ -233,7 +233,8 @@ function renderPlanner() {
   const grid = document.querySelector("#plannerGrid");
   const dates = [];
   if (plannerView === "week") {
-    const start = startOfWeek(plannerCursor);
+    const start = new Date(plannerCursor);
+    start.setHours(0, 0, 0, 0);
     for (let index = 0; index < 7; index++) { const day = new Date(start); day.setDate(start.getDate() + index); dates.push(day); }
     document.querySelector("#plannerTitle").textContent = `${dates[0].getMonth() + 1}月${dates[0].getDate()}日 – ${dates[6].getMonth() + 1}月${dates[6].getDate()}日`;
   } else {
@@ -593,6 +594,7 @@ document.querySelector("#nextMonth").addEventListener("click", () => { calendarC
 document.querySelector("#addPlanTask").addEventListener("click", openTaskDialog);
 document.querySelector("#plannerPrev").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() - 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() - 1); } renderPlanner(); });
 document.querySelector("#plannerNext").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() + 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() + 1); } renderPlanner(); });
+document.querySelector("#plannerToday").addEventListener("click", () => { plannerCursor = new Date(); selectedPlanDate = dateKey(plannerCursor); renderPlanner(); });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js");
 render();
