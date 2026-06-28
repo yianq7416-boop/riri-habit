@@ -246,12 +246,11 @@ function renderPlanner() {
     for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) dates.push(new Date(year, month, day));
     document.querySelector("#plannerTitle").textContent = `${year}年${month + 1}月`;
   }
-  const labels = ["日", "一", "二", "三", "四", "五", "六"];
   grid.innerHTML = dates.map(date => {
     if (!date) return `<span class="planner-day blank"></span>`;
     const key = dateKey(date);
     const count = state.tasks.filter(task => task.date === key).length;
-    return `<button class="planner-day ${key === selectedPlanDate ? "selected" : ""} ${key === dateKey(new Date()) ? "today" : ""}" data-plan-date="${key}"><span>${plannerView === "week" ? `${labels[date.getDay()]} ${date.getDate()}` : date.getDate()}</span>${count ? `<small>${count} 项</small>` : ""}</button>`;
+    return `<button class="planner-day ${key === selectedPlanDate ? "selected" : ""} ${key === dateKey(new Date()) ? "today" : ""}" data-plan-date="${key}"><span>${plannerView === "week" ? `${date.getMonth() + 1}月${date.getDate()}日` : date.getDate()}</span>${count ? `<small>${count} 项</small>` : ""}</button>`;
   }).join("");
   document.querySelectorAll("[data-planner-view]").forEach(button => button.classList.toggle("active", button.dataset.plannerView === plannerView));
   const selected = new Date(`${selectedPlanDate}T00:00:00`);
