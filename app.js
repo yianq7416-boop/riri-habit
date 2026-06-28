@@ -92,8 +92,9 @@ function applyLayout() {
     if (!module) return;
     let controls = module.querySelector(":scope > .module-controls");
     if (!controls) {
-      controls = document.createElement("div");
+      controls = document.createElement("aside");
       controls.className = "module-controls";
+      controls.setAttribute("aria-label", "模块位置");
       controls.innerHTML = `<button data-layout-move="up" aria-label="向上移动" title="向上移动">↑</button><button data-layout-move="down" aria-label="向下移动" title="向下移动">↓</button><button data-layout-done aria-label="完成布局编辑" title="完成">×</button>`;
       module.appendChild(controls);
     }
