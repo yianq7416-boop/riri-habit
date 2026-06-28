@@ -104,10 +104,10 @@ h3 { margin: 0; }
 .collapse-button span { display: none; }
 .collapse-button b { font-size: 17px; font-weight: 500; }
 .layout-editing .collapse-button { display: none; }
-.today-module.collapsed { min-height: 58px !important; margin-top: 18px; padding: 0 16px !important; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.today-module.collapsed { display: block !important; width: 100%; min-height: 58px !important; margin-top: 18px; padding: 0 16px !important; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
 .today-module.collapsed > :not(.collapse-button):not(.module-controls) { display: none !important; }
-.today-module.collapsed > .collapse-button { position: static; width: 100%; height: 56px; display: flex; align-items: center; justify-content: space-between; border: 0; background: transparent; color: var(--text); text-align: left; }
-.today-module.collapsed > .collapse-button span { display: block; font-weight: 750; }
+.today-module.collapsed > .collapse-button { position: static; width: 100% !important; min-width: 100%; height: 56px; display: flex; align-items: center; justify-content: space-between; border: 0; background: transparent; color: var(--text); text-align: left; }
+.today-module.collapsed > .collapse-button span { display: block !important; min-width: 0; font-weight: 750; white-space: nowrap; }
 .planner-panel:not(.collapsed) .planner-top, .habits-module:not(.collapsed) > .section-heading, .week-panel:not(.collapsed) > .section-heading { padding-right: 44px; }
 .delight-grid:not(.collapsed) .focus-panel { padding-right: 62px; }
 .text-button { padding: 8px 0; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--primary); font-weight: 750; cursor: pointer; }
