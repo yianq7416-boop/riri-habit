@@ -26,6 +26,7 @@ const seed = {
     { id: makeId(), name: "十二点前睡觉", icon: "眠", color: colors[4], createdAt: dateKey(new Date(Date.now() - 8 * 86400000)) }
   ],
   checks: {},
+  goals: [],
   theme: "light"
 };
 
@@ -33,6 +34,7 @@ let state = loadState();
 let calendarCursor = new Date();
 let selectedIcon = icons[0];
 let selectedColor = colors[0];
+let currentGoalFilter = "all";
 
 function dateKey(date) {
   const year = date.getFullYear();
@@ -44,7 +46,9 @@ function dateKey(date) {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return saved?.habits ? saved : createSeed();
+    if (!saved?.habits) return createSeed();
+    saved.goals ||= [];
+    return saved;
   } catch { return createSeed(); }
 }
 
@@ -68,6 +72,7 @@ function render() {
   renderWeek();
   renderCalendar();
   renderManage();
+  renderGoals();
 }
 
 function renderToday() {
@@ -181,7 +186,10 @@ function renderManage() {
     list.innerHTML = `<div class="empty-state"><div class="empty-visual"><span>✓</span></div><h3>还没有习惯</h3><p>添加一件你愿意每天做的小事。</p><button class="primary-button" data-open-add>添加习惯</button></div>`;
     return;
   }
-  list.innerHTML = state.habits.map(habit => `<article class="manage-item" style="--habit-color:${habit.color}"><div class="habit-icon">${habit.icon}</div><div><h3>${escapeHtml(habit.name)}</h3><p>累计完成 ${habitTotal(habit.id)} 次 · 最长连续 ${habitBestStreak(habit.id)} 天</p></div><button class="delete-button" data-delete="${habit.id}">删除</button></article>`).join("");
+  list.innerHTML = state.habits.map(habit => `<article class="manage-item habit-reminder-item" style="--habit-color:${habit.color}">
+    <div class="habit-icon">${habit.icon}</div><div class="manage-habit-copy"><h3>${escapeHtml(habit.name)}</h3><p>累计完成 ${habitTotal(habit.id)} 次 · 最长连续 ${habitBestStreak(habit.id)} 天</p>
+    <div class="habit-reminder-controls"><label>开始<input type="time" value="${habit.reminderStart || "20:00"}" data-reminder-start="${habit.id}"></label><span>至</span><label>结束<input type="time" value="${habit.reminderEnd || "21:00"}" data-reminder-end="${habit.id}"></label><button class="secondary-button" data-habit-calendar="${habit.id}">加入日历</button></div></div>
+    <button class="delete-button" data-delete="${habit.id}">删除</button></article>`).join("");
 }
 
 function toggleCheck(id) {
@@ -253,7 +261,9 @@ function addHabit() {
   const input = document.querySelector("#habitName");
   const name = input.value.trim();
   if (!name) { input.reportValidity(); return; }
-  state.habits.push({ id: makeId(), name, icon: selectedIcon, color: selectedColor, createdAt: dateKey(new Date()) });
+  const reminderStart = document.querySelector("#habitReminderStart").value || "20:00";
+  const reminderEnd = document.querySelector("#habitReminderEnd").value || "21:00";
+  state.habits.push({ id: makeId(), name, icon: selectedIcon, color: selectedColor, reminderStart, reminderEnd, createdAt: dateKey(new Date()) });
   saveState(); render(); document.querySelector("#habitDialog").close(); showToast("新习惯已加入今天的清单");
 }
 
@@ -297,6 +307,89 @@ function addCalendarReminder() {
   showToast("提醒文件已生成，请选择用日历打开");
 }
 
+function goalDeadline(period, from = new Date()) {
+  const date = new Date(from);
+  if (period === "week") date.setDate(date.getDate() + (7 - ((date.getDay() + 6) % 7)) - 1);
+  if (period === "month") date.setMonth(date.getMonth() + 1, 0);
+  if (period === "year") date.setMonth(11, 31);
+  date.setHours(23, 59, 59, 999);
+  return dateKey(date);
+}
+
+function renderGoals() {
+  const goals = state.goals || [];
+  const visible = currentGoalFilter === "all" ? goals : goals.filter(goal => goal.period === currentGoalFilter);
+  document.querySelector("#activeGoalCount").textContent = goals.filter(goal => !goal.completed).length;
+  document.querySelector("#goalActionCount").textContent = goals.reduce((sum, goal) => sum + goal.progress, 0);
+  document.querySelector("#completedGoalCount").textContent = goals.filter(goal => goal.completed).length;
+  document.querySelector("#goalEmpty").hidden = visible.length > 0;
+  const periodNames = { week: "一周目标", month: "月度目标", year: "年度目标" };
+  const now = dateKey(new Date());
+  document.querySelector("#goalList").innerHTML = visible.map(goal => {
+    const percent = Math.min(100, Math.round(goal.progress / goal.target * 100));
+    const overdue = !goal.completed && goal.deadline < now;
+    return `<article class="goal-card ${goal.completed ? "completed" : ""}">
+      <div class="goal-card-top"><span class="period-tag">${periodNames[goal.period]}</span><span class="goal-due ${overdue ? "overdue" : ""}">${goal.completed ? "已完成" : overdue ? "已到期" : `截止 ${goal.deadline.slice(5).replace("-", "/")}`}</span></div>
+      <h3>${escapeHtml(goal.title)}</h3><p class="goal-why">${escapeHtml(goal.why)}</p>
+      <div class="goal-progress-line"><span>行动进度</span><strong>${percent}%</strong></div><div class="goal-progress-bar"><i style="width:${percent}%"></i></div>
+      <div class="goal-card-actions"><div class="goal-stepper"><button data-goal-minus="${goal.id}" aria-label="减少一次行动">−</button><span>${goal.progress}/${goal.target}</span><button data-goal-plus="${goal.id}" aria-label="完成一次行动">＋</button></div><button class="delete-button" data-goal-delete="${goal.id}">删除</button></div>
+    </article>`;
+  }).join("");
+}
+
+function openGoalDialog() {
+  document.querySelector("#goalForm").reset();
+  document.querySelector("#goalTarget").value = 12;
+  document.querySelector("#goalDialog").showModal();
+  setTimeout(() => document.querySelector("#goalTitle").focus(), 50);
+}
+
+function addGoal() {
+  const titleInput = document.querySelector("#goalTitle");
+  const whyInput = document.querySelector("#goalWhy");
+  const title = titleInput.value.trim(); const why = whyInput.value.trim();
+  if (!title || !why) { (!title ? titleInput : whyInput).reportValidity(); return; }
+  const period = document.querySelector("#goalPeriod").value;
+  const target = Math.max(1, Number(document.querySelector("#goalTarget").value) || 1);
+  state.goals.push({ id: makeId(), title, why, period, target, progress: 0, completed: false, createdAt: dateKey(new Date()), deadline: goalDeadline(period) });
+  saveState(); render(); document.querySelector("#goalDialog").close(); showToast("目标已开始，先完成第一次行动吧");
+}
+
+function changeGoalProgress(id, amount) {
+  const goal = state.goals.find(item => item.id === id); if (!goal) return;
+  goal.progress = Math.max(0, Math.min(goal.target, goal.progress + amount));
+  const justCompleted = !goal.completed && goal.progress >= goal.target;
+  goal.completed = goal.progress >= goal.target;
+  saveState(); render(); showToast(justCompleted ? "目标完成了，这一步很值得记住" : amount > 0 ? "记下一次行动" : "已调整行动次数");
+}
+
+function deleteGoal(id) {
+  const goal = state.goals.find(item => item.id === id);
+  if (!goal || !confirm(`删除目标“${goal.title}”？`)) return;
+  state.goals = state.goals.filter(item => item.id !== id); saveState(); render(); showToast("目标已删除");
+}
+
+function formatCalendarDate(date) {
+  const values = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()];
+  return `${values[0]}${String(values[1]).padStart(2, "0")}${String(values[2]).padStart(2, "0")}T${String(values[3]).padStart(2, "0")}${String(values[4]).padStart(2, "0")}${String(values[5]).padStart(2, "0")}`;
+}
+
+function downloadHabitReminder(habit) {
+  const startTime = habit.reminderStart || "20:00"; const endTime = habit.reminderEnd || "21:00";
+  const [startHour, startMinute] = startTime.split(":").map(Number); const [endHour, endMinute] = endTime.split(":").map(Number);
+  const start = new Date(); start.setHours(startHour, startMinute, 0, 0); if (start <= new Date()) start.setDate(start.getDate() + 1);
+  const end = new Date(start); end.setHours(endHour, endMinute, 0, 0); if (end <= start) end.setDate(end.getDate() + 1);
+  const calendar = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Riri Habit//Habit Reminder//CN", "BEGIN:VEVENT", `UID:${makeId()}@riri-habit`, `DTSTART:${formatCalendarDate(start)}`, `DTEND:${formatCalendarDate(end)}`, "RRULE:FREQ=DAILY", `SUMMARY:${habit.name}`, `DESCRIPTION:打开日日，完成：${habit.name}`, "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", `DESCRIPTION:该完成 ${habit.name} 了`, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const blob = new Blob([calendar], { type: "text/calendar;charset=utf-8" }); const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob); link.download = `${habit.name}-每日提醒.ics`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  showToast("任务提醒已生成，请选择用日历打开");
+}
+
+function updateHabitReminder(id, field, value) {
+  const habit = state.habits.find(item => item.id === id); if (!habit) return;
+  habit[field] = value; saveState(); renderToday(); showToast("提醒时段已保存");
+}
+
 function switchView(view) {
   document.querySelectorAll(".view").forEach(item => item.classList.toggle("active", item.id === `${view}View`));
   document.querySelectorAll(".nav-item[data-view]").forEach(item => item.classList.toggle("active", item.dataset.view === view));
@@ -315,6 +408,12 @@ document.addEventListener("click", event => {
   if (target.dataset.view) switchView(target.dataset.view);
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
+  if (target.hasAttribute("data-open-goal")) openGoalDialog();
+  if (target.dataset.goalPlus) changeGoalProgress(target.dataset.goalPlus, 1);
+  if (target.dataset.goalMinus) changeGoalProgress(target.dataset.goalMinus, -1);
+  if (target.dataset.goalDelete) deleteGoal(target.dataset.goalDelete);
+  if (target.dataset.goalFilter) { currentGoalFilter = target.dataset.goalFilter; document.querySelectorAll("[data-goal-filter]").forEach(item => item.classList.toggle("active", item === target)); renderGoals(); }
+  if (target.dataset.habitCalendar) { const habit = state.habits.find(item => item.id === target.dataset.habitCalendar); if (habit) downloadHabitReminder(habit); }
   if (target.hasAttribute("data-open-add") || target.id === "quickAddButton") openDialog();
   if (target.dataset.icon) { selectedIcon = target.dataset.icon; renderOptions(); }
   if (target.dataset.color) { selectedColor = target.dataset.color; renderOptions(); }
@@ -322,6 +421,16 @@ document.addEventListener("click", event => {
 
 document.querySelector("#saveHabit").addEventListener("click", event => { event.preventDefault(); addHabit(); });
 document.querySelector("#habitForm").addEventListener("submit", event => { event.preventDefault(); addHabit(); });
+document.querySelector("#saveGoal").addEventListener("click", event => { event.preventDefault(); addGoal(); });
+document.querySelector("#goalForm").addEventListener("submit", event => { event.preventDefault(); addGoal(); });
+document.querySelector("#goalPeriod").addEventListener("change", event => {
+  const presets = { week: [5, "建议：一周目标拆成 3–7 次清晰行动。"], month: [12, "建议：一个月目标拆成 8–20 次可以完成的行动。"], year: [52, "建议：一年目标按每周一次行动开始。"] };
+  document.querySelector("#goalTarget").value = presets[event.target.value][0]; document.querySelector("#goalHint").textContent = presets[event.target.value][1];
+});
+document.addEventListener("change", event => {
+  if (event.target.dataset.reminderStart) updateHabitReminder(event.target.dataset.reminderStart, "reminderStart", event.target.value);
+  if (event.target.dataset.reminderEnd) updateHabitReminder(event.target.dataset.reminderEnd, "reminderEnd", event.target.value);
+});
 document.querySelector("#themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; saveState(); render(); });
 document.querySelector("#openMystery").addEventListener("click", openMystery);
 document.querySelector("#mysteryCard").addEventListener("click", () => { if (state.mysteryOpened !== dateKey(new Date())) openMystery(); });

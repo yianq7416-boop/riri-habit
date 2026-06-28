@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <div class="app-shell">
@@ -23,6 +23,7 @@
         <button class="nav-item active" data-view="today">今天</button>
         <button class="nav-item" data-view="history">记录</button>
         <button class="nav-item" data-view="habits">习惯</button>
+        <button class="nav-item" data-view="goals">目标</button>
       </nav>
       <button class="icon-button" id="themeToggle" aria-label="切换深色模式" title="切换深色模式">
         <span aria-hidden="true">☾</span>
@@ -126,12 +127,30 @@
         </section>
         <div class="manage-list" id="manageList"></div>
       </section>
+
+      <section class="view" id="goalsView">
+        <div class="page-heading simple">
+          <div><p class="eyebrow">MY DIRECTION</p><h1>我的目标</h1><p class="subcopy">把想成为的样子，拆成这一周、这个月和这一年。</p></div>
+          <button class="primary-button" data-open-goal>＋ 新建目标</button>
+        </div>
+        <section class="goal-overview" aria-label="目标概览">
+          <div><strong id="activeGoalCount">0</strong><span>进行中</span></div>
+          <div><strong id="goalActionCount">0</strong><span>累计行动</span></div>
+          <div><strong id="completedGoalCount">0</strong><span>已经完成</span></div>
+        </section>
+        <div class="goal-tabs" role="tablist" aria-label="目标周期">
+          <button class="active" data-goal-filter="all">全部</button><button data-goal-filter="week">本周</button><button data-goal-filter="month">本月</button><button data-goal-filter="year">今年</button>
+        </div>
+        <div class="goal-list" id="goalList"></div>
+        <div class="empty-state" id="goalEmpty" hidden><div class="empty-visual"><span>◎</span></div><h3>先写下一个真正想要的改变</h3><p>目标不用壮观，只要能让明天的选择更清楚。</p><button class="primary-button" data-open-goal>创建第一个目标</button></div>
+      </section>
     </main>
 
     <nav class="mobile-nav" aria-label="手机端导航">
       <button class="nav-item active" data-view="today"><span>⌂</span>今天</button>
       <button class="nav-item" data-view="history"><span>▦</span>记录</button>
       <button class="nav-item" data-view="habits"><span>◎</span>习惯</button>
+      <button class="nav-item" data-view="goals"><span>◇</span>目标</button>
     </nav>
   </div>
 
@@ -139,12 +158,24 @@
     <form method="dialog" id="habitForm">
       <div class="dialog-header"><div><p class="eyebrow">NEW HABIT</p><h2>添加一个习惯</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
       <label>习惯名称<input id="habitName" maxlength="18" placeholder="例如：喝够八杯水" required></label>
+      <div class="goal-form-row reminder-range-fields"><label>开始提醒<input id="habitReminderStart" type="time" value="20:00"></label><label>结束时段<input id="habitReminderEnd" type="time" value="21:00"></label></div>
+      <p class="form-hint">添加后可在“习惯”页随时修改，并加入手机日历。</p>
       <fieldset><legend>选择图标</legend><div class="option-grid icon-options" id="iconOptions"></div></fieldset>
       <fieldset><legend>选择颜色</legend><div class="option-grid color-options" id="colorOptions"></div></fieldset>
       <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveHabit" value="default">添加习惯</button></div>
     </form>
   </dialog>
+  <dialog id="goalDialog">
+    <form method="dialog" id="goalForm">
+      <div class="dialog-header"><div><p class="eyebrow">NEW DIRECTION</p><h2>新建一个目标</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <label>我想完成什么<input id="goalTitle" maxlength="28" placeholder="例如：能独立做出一个小网站" required></label>
+      <label>我想改变或学会什么<input id="goalWhy" maxlength="48" placeholder="例如：建立编程思维，不再只看教程" required></label>
+      <div class="goal-form-row"><label>目标周期<select id="goalPeriod"><option value="week">一周</option><option value="month" selected>一个月</option><option value="year">一年</option></select></label><label>行动次数<input id="goalTarget" type="number" min="1" max="999" value="12" required></label></div>
+      <p class="form-hint" id="goalHint">建议：一个月目标拆成 8–20 次可以完成的行动。</p>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveGoal" value="default">开始这个目标</button></div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
