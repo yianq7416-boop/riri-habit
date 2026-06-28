@@ -100,6 +100,16 @@ h3 { margin: 0; }
 .module-controls button[data-layout-done] { color: var(--coral); font-size: 22px; }
 .layout-editing .today-module { outline: 2px dashed var(--primary); outline-offset: 5px; }
 .layout-editing .module-controls { display: flex; }
+.collapse-button { position: absolute; z-index: 4; top: 8px; right: 8px; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--primary); cursor: pointer; }
+.collapse-button span { display: none; }
+.collapse-button b { font-size: 17px; font-weight: 500; }
+.layout-editing .collapse-button { display: none; }
+.today-module.collapsed { min-height: 58px !important; margin-top: 18px; padding: 0 16px !important; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.today-module.collapsed > :not(.collapse-button):not(.module-controls) { display: none !important; }
+.today-module.collapsed > .collapse-button { position: static; width: 100%; height: 56px; display: flex; align-items: center; justify-content: space-between; border: 0; background: transparent; color: var(--text); text-align: left; }
+.today-module.collapsed > .collapse-button span { display: block; font-weight: 750; }
+.planner-panel:not(.collapsed) .planner-top, .habits-module:not(.collapsed) > .section-heading, .week-panel:not(.collapsed) > .section-heading { padding-right: 44px; }
+.delight-grid:not(.collapsed) .focus-panel { padding-right: 62px; }
 .text-button { padding: 8px 0; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--primary); font-weight: 750; cursor: pointer; }
 .habit-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .habit-card { min-height: 112px; display: grid; grid-template-columns: 52px 1fr 44px; align-items: center; gap: 14px; padding: 19px; border: 1px solid var(--line); background: var(--surface); transition: transform .18s, border-color .18s, opacity .18s; }
