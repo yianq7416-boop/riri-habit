@@ -152,6 +152,10 @@ h3 { margin: 0; }
 .calendar-day.complete { background: var(--primary); color: white; }
 .calendar-day.today::after { content: ""; position: absolute; inset: 4px; border: 1px solid var(--coral); border-radius: 5px; }
 .calendar-legend { display: flex; justify-content: end; gap: 18px; margin-top: 20px; color: var(--muted); font-size: 11px; }
+.month-review { margin-top: 14px; padding: 22px; border: 1px solid var(--line); background: var(--surface); }
+.month-review-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 16px; background: var(--line); }
+.month-review-stats span { min-height: 72px; display: grid; align-content: center; gap: 3px; padding: 12px; background: var(--bg); }
+.month-review-stats strong { font-size: 22px; }.month-review-stats small { color: var(--muted); }
 .calendar-legend span { display: flex; align-items: center; gap: 6px; }.dot { width: 10px; aspect-ratio: 1; border-radius: 2px; background: var(--primary-soft); }.dot.full { background: var(--primary); }
 .manage-list { display: grid; gap: 10px; }
 .reminder-panel { display: grid; grid-template-columns: 52px 1fr auto auto; align-items: center; gap: 18px; margin-bottom: 28px; padding: 22px; border: 1px solid var(--line); background: var(--surface); }
@@ -161,6 +165,7 @@ h3 { margin: 0; }
 .time-field { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 700; }
 .time-field input { width: 116px; height: 44px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); }
 .manage-item { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 15px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.manage-actions { display: flex; align-items: center; gap: 10px; }
 .manage-item .habit-icon { width: 48px; }
 .manage-item p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
 .manage-habit-copy { min-width: 0; }.habit-reminder-controls { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; margin-top: 12px; }.habit-reminder-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }.habit-reminder-controls input { width: 102px; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--text); }.habit-reminder-controls > span { padding-bottom: 9px; color: var(--muted); font-size: 11px; }.habit-reminder-controls .secondary-button { min-height: 36px; }
@@ -239,13 +244,16 @@ fieldset { margin: 22px 0 0; padding: 0; border: 0; }
 .sync-status { min-height: 42px; margin-top: 18px; padding: 11px 13px; border-radius: 5px; background: var(--surface-2); color: var(--muted); font-size: 12px; }
 .sync-status.success { color: var(--primary); }
 .sync-status.error { color: var(--coral); }
+.data-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 .toast { position: fixed; left: 50%; bottom: 30px; z-index: 20; padding: 11px 16px; border-radius: 6px; background: var(--text); color: var(--bg); opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: .22s; font-size: 13px; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast button { min-height: 32px; margin-left: 12px; border: 0; background: transparent; color: var(--primary); font-weight: 800; cursor: pointer; }
+.toast.show:has(button) { pointer-events: auto; }
 
 body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: #303630; --text: #f1f3ed; --muted: #a5aca2; --line: #394039; --primary: #6fc39b; --primary-soft: #263d32; --shadow: none; }
 
 @media (max-width: 700px) {
-  .app-shell { padding: 0 16px 102px; }
+  .app-shell { padding: 0 16px calc(30px + env(safe-area-inset-bottom)); }
   .topbar { height: 60px; }
   .desktop-nav { display: none; }
   .topbar > .icon-button { margin-left: auto; }
@@ -288,7 +296,9 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .calendar-panel { padding: 18px 10px; }
   .calendar-grid, .calendar-weekdays { gap: 3px; }
   .calendar-day { font-size: 12px; }
+  .month-review { padding: 18px 12px; }.month-review-stats small { font-size: 10px; }
   .manage-item { grid-template-columns: 42px 1fr auto; padding: 14px 12px; }
+  .manage-actions { grid-column: 2 / -1; justify-content: flex-end; }
   .habit-reminder-item { align-items: start; }.habit-reminder-controls { grid-column: 1 / -1; }.habit-reminder-controls input { width: 96px; }.habit-reminder-controls .secondary-button { width: 100%; margin-top: 2px; }
   .goal-list { grid-template-columns: 1fr; }.goal-overview div { min-height: 76px; padding: 12px; }.goal-overview strong { font-size: 22px; }.goal-card { padding: 18px; }
   .reminder-panel { grid-template-columns: 46px 1fr; gap: 14px; padding: 18px 14px; }
@@ -301,7 +311,13 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .mobile-nav .nav-item { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; }
   .mobile-nav .nav-item span { font-size: 21px; }
   .mobile-nav .nav-item.active { color: var(--primary); }
-  .toast { bottom: 86px; }
+  dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px - env(safe-area-inset-top)); margin: auto; }
+  dialog form { max-height: calc(100dvh - 16px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; padding: 22px 18px calc(22px + env(safe-area-inset-bottom)); }
+  dialog input, dialog select { min-height: 48px; font-size: 16px; }
+  .dialog-actions { position: sticky; bottom: calc(-22px - env(safe-area-inset-bottom)); z-index: 2; margin: 24px -18px calc(-22px - env(safe-area-inset-bottom)); padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); background: var(--surface); border-top: 1px solid var(--line); }
+  .dialog-actions .primary-button, .dialog-actions .secondary-button { min-height: 48px; }
+  .icon-button, .check-button { min-width: 44px; min-height: 44px; }
+  .toast { bottom: calc(18px + env(safe-area-inset-bottom)); max-width: calc(100vw - 28px); white-space: nowrap; }
 }
 
 @media (max-width: 390px) {

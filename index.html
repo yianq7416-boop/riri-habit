@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
   <div class="app-shell">
@@ -122,6 +122,7 @@
           <div class="calendar-grid" id="calendarGrid"></div>
           <div class="calendar-legend"><span><i class="dot low"></i>有记录</span><span><i class="dot full"></i>全部完成</span></div>
         </section>
+        <section class="month-review" id="monthReview" aria-label="月度复盘"></section>
       </section>
 
       <section class="view" id="habitsView">
@@ -170,7 +171,7 @@
 
   <dialog id="habitDialog">
     <form method="dialog" id="habitForm">
-      <div class="dialog-header"><div><p class="eyebrow">NEW HABIT</p><h2>添加一个习惯</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <div class="dialog-header"><div><p class="eyebrow">HABIT</p><h2 id="habitDialogTitle">添加一个习惯</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
       <label>习惯名称<input id="habitName" maxlength="18" placeholder="例如：喝够八杯水" required></label>
       <div class="goal-form-row reminder-range-fields"><label>开始提醒<input id="habitReminderStart" type="time" value="20:00"></label><label>结束时段<input id="habitReminderEnd" type="time" value="21:00"></label></div>
       <p class="form-hint">添加后可在“习惯”页随时修改，并加入手机日历。</p>
@@ -191,7 +192,7 @@
   </dialog>
   <dialog id="taskDialog">
     <form method="dialog" id="taskForm">
-      <div class="dialog-header"><div><p class="eyebrow">NEW TASK</p><h2>添加日期任务</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <div class="dialog-header"><div><p class="eyebrow">TASK</p><h2 id="taskDialogTitle">添加日期任务</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
       <label>要做什么<input id="taskTitle" maxlength="40" required placeholder="例如：预约体检"></label>
       <label>安排日期<input id="taskDate" type="date" required></label>
       <label>提醒时间<input id="taskReminderTime" type="time" value="09:00" required></label>
@@ -205,10 +206,11 @@
       <label>同步码<input id="syncCode" autocomplete="off" maxlength="64" placeholder="输入或生成同步码"></label>
       <div class="sync-code-actions"><button class="secondary-button" id="generateSyncCode" type="button">生成同步码</button><button class="secondary-button" id="copySyncCode" type="button">复制</button></div>
       <p class="sync-status" id="syncStatus">尚未连接</p>
+      <div class="data-tools"><button class="secondary-button" id="exportData" type="button">导出备份</button><button class="secondary-button" id="importData" type="button">导入备份</button><input id="importDataFile" type="file" accept="application/json" hidden></div>
       <div class="dialog-actions"><button class="text-button" id="disconnectSync" type="button" hidden>断开</button><button class="secondary-button" id="syncNow" type="button" hidden>立即同步</button><button class="primary-button" id="connectSync" type="button">连接同步</button></div>
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>

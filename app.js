@@ -1,5 +1,6 @@
 const STORAGE_KEY = "riri-habit-state-v1";
 const SYNC_KEY_STORAGE = "riri-habit-sync-key";
+const PRE_SYNC_BACKUP = "riri-habit-pre-sync-backup";
 const SUPABASE_URL = "https://vxafxavnhtucexxcfjdk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_zKu6CHH83OQTBuXATaRcQQ_S2a7fH1C";
 const DEFAULT_LAYOUT = ["summary", "shortcuts", "planner", "focus", "habits", "week"];
@@ -50,6 +51,9 @@ let layoutEditing = false;
 let syncKey = localStorage.getItem(SYNC_KEY_STORAGE) || "";
 let syncTimer;
 let syncing = false;
+let editingHabitId = null;
+let editingTaskId = null;
+let undoSnapshot = null;
 
 function dateKey(date) {
   const year = date.getFullYear();
@@ -135,6 +139,7 @@ async function cloudPull(force = false) {
     const remoteTime = Date.parse(remote.updatedAt || 0);
     const localTime = Date.parse(state.updatedAt || 0);
     if (force || remoteTime > localTime) {
+      localStorage.setItem(PRE_SYNC_BACKUP, JSON.stringify(state));
       state = remote;
       state.layout = normalizeLayout(state.layout);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -375,13 +380,17 @@ function renderPlanner() {
   const selected = new Date(`${selectedPlanDate}T00:00:00`);
   document.querySelector("#plannerSelectedLabel").textContent = `${selected.getMonth() + 1}月${selected.getDate()}日`;
   const tasks = state.tasks.filter(task => task.date === selectedPlanDate);
-  document.querySelector("#plannerTaskList").innerHTML = tasks.length ? tasks.map(task => `<article class="planner-task ${task.done ? "done" : ""}"><button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}">✓</button><div class="planner-task-copy"><strong>${escapeHtml(task.title)}</strong><small>${task.reminderTime || "09:00"} 提醒</small></div><button class="secondary-button task-calendar-button" data-task-calendar="${task.id}">加入日历</button><button class="icon-button" data-task-delete="${task.id}" aria-label="删除${escapeHtml(task.title)}" title="删除">×</button></article>`).join("") : `<p class="planner-empty">这一天还没有任务</p>`;
+  document.querySelector("#plannerTaskList").innerHTML = tasks.length ? tasks.map(task => `<article class="planner-task ${task.done ? "done" : ""}"><button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}">✓</button><div class="planner-task-copy"><strong>${escapeHtml(task.title)}</strong><small>${task.reminderTime || "09:00"} 提醒</small></div><button class="secondary-button" data-task-edit="${task.id}">编辑</button><button class="secondary-button task-calendar-button" data-task-calendar="${task.id}">加入日历</button><button class="icon-button" data-task-delete="${task.id}" aria-label="删除${escapeHtml(task.title)}" title="删除">×</button></article>`).join("") : `<p class="planner-empty">这一天还没有任务</p>`;
 }
 
-function openTaskDialog() {
-  document.querySelector("#taskDate").value = selectedPlanDate;
-  document.querySelector("#taskTitle").value = "";
-  document.querySelector("#taskReminderTime").value = "09:00";
+function openTaskDialog(id = null) {
+  const task = id ? state.tasks.find(item => item.id === id) : null;
+  editingTaskId = task?.id || null;
+  document.querySelector("#taskDate").value = task?.date || selectedPlanDate;
+  document.querySelector("#taskTitle").value = task?.title || "";
+  document.querySelector("#taskReminderTime").value = task?.reminderTime || "09:00";
+  document.querySelector("#taskDialogTitle").textContent = task ? "编辑日期任务" : "添加日期任务";
+  document.querySelector("#saveTask").textContent = task ? "保存修改" : "添加任务";
   document.querySelector("#taskDialog").showModal();
   setTimeout(() => document.querySelector("#taskTitle").focus(), 50);
 }
@@ -391,10 +400,12 @@ function addPlanTask() {
   const date = document.querySelector("#taskDate").value;
   const reminderTime = document.querySelector("#taskReminderTime").value;
   if (!title || !date) return;
-  state.tasks.push({ id: makeId(), title, date, reminderTime, done: false });
+  const task = editingTaskId ? state.tasks.find(item => item.id === editingTaskId) : null;
+  if (task) Object.assign(task, { title, date, reminderTime });
+  else state.tasks.push({ id: makeId(), title, date, reminderTime, done: false });
   selectedPlanDate = date;
   plannerCursor = new Date(`${date}T00:00:00`);
-  saveState(); render(); document.querySelector("#taskDialog").close(); showToast("任务已安排");
+  saveState(); render(); document.querySelector("#taskDialog").close(); showToast(task ? "任务已更新" : "任务已安排"); editingTaskId = null;
 }
 
 function togglePlanTask(id) {
@@ -403,7 +414,8 @@ function togglePlanTask(id) {
 }
 
 function deletePlanTask(id) {
-  state.tasks = state.tasks.filter(item => item.id !== id); saveState(); render(); showToast("任务已删除");
+  undoSnapshot = structuredClone(state);
+  state.tasks = state.tasks.filter(item => item.id !== id); saveState(); render(); showToast("任务已删除", true);
 }
 
 function renderCalendar() {
@@ -424,6 +436,12 @@ function renderCalendar() {
     if (key === dateKey(new Date())) classes.push("today");
     return `<div class="${classes.join(" ")}" title="${key} · ${checks.length} 次完成">${date.getDate()}</div>`;
   }).join("");
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthEntries = Object.entries(state.checks).filter(([key]) => key.startsWith(monthPrefix));
+  const total = monthEntries.reduce((sum, [, ids]) => sum + ids.filter(id => state.habits.some(habit => habit.id === id)).length, 0);
+  const activeDays = monthEntries.filter(([, ids]) => ids.length).length;
+  const best = state.habits.map(habit => ({ name: habit.name, count: monthEntries.filter(([, ids]) => ids.includes(habit.id)).length })).sort((a, b) => b.count - a.count)[0];
+  document.querySelector("#monthReview").innerHTML = `<div><p class="eyebrow">MONTHLY REVIEW</p><h2>${month + 1}月复盘</h2></div><div class="month-review-stats"><span><strong>${total}</strong><small>完成次数</small></span><span><strong>${activeDays}</strong><small>有行动的天数</small></span><span><strong>${best?.count || 0}</strong><small>${best ? escapeHtml(best.name) : "最稳定习惯"}</small></span></div>`;
 }
 
 function renderManage() {
@@ -435,7 +453,7 @@ function renderManage() {
   list.innerHTML = state.habits.map(habit => `<article class="manage-item habit-reminder-item" style="--habit-color:${habit.color}">
     <div class="habit-icon">${habit.icon}</div><div class="manage-habit-copy"><h3>${escapeHtml(habit.name)}</h3><p>累计完成 ${habitTotal(habit.id)} 次 · 最长连续 ${habitBestStreak(habit.id)} 天</p>
     <div class="habit-reminder-controls"><label>开始<input type="time" value="${habit.reminderStart || "20:00"}" data-reminder-start="${habit.id}"></label><span>至</span><label>结束<input type="time" value="${habit.reminderEnd || "21:00"}" data-reminder-end="${habit.id}"></label><button class="secondary-button" data-habit-calendar="${habit.id}">加入日历</button></div></div>
-    <button class="delete-button" data-delete="${habit.id}">删除</button></article>`).join("");
+    <div class="manage-actions"><button class="secondary-button" data-edit-habit="${habit.id}">编辑</button><button class="delete-button" data-delete="${habit.id}">删除</button></div></article>`).join("");
 }
 
 function toggleCheck(id) {
@@ -491,9 +509,17 @@ function calculateWeekRate() {
   return Math.round(checks / (state.habits.length * (dayIndex + 1)) * 100);
 }
 
-function openDialog() {
-  selectedIcon = icons[0]; selectedColor = colors[0];
-  document.querySelector("#habitForm").reset(); renderOptions();
+function openDialog(id = null) {
+  const habit = id ? state.habits.find(item => item.id === id) : null;
+  editingHabitId = habit?.id || null;
+  selectedIcon = habit?.icon || icons[0]; selectedColor = habit?.color || colors[0];
+  document.querySelector("#habitForm").reset();
+  document.querySelector("#habitName").value = habit?.name || "";
+  document.querySelector("#habitReminderStart").value = habit?.reminderStart || "20:00";
+  document.querySelector("#habitReminderEnd").value = habit?.reminderEnd || "21:00";
+  document.querySelector("#habitDialogTitle").textContent = habit ? "编辑习惯" : "添加一个习惯";
+  document.querySelector("#saveHabit").textContent = habit ? "保存修改" : "添加习惯";
+  renderOptions();
   document.querySelector("#habitDialog").showModal();
   setTimeout(() => document.querySelector("#habitName").focus(), 50);
 }
@@ -509,16 +535,19 @@ function addHabit() {
   if (!name) { input.reportValidity(); return; }
   const reminderStart = document.querySelector("#habitReminderStart").value || "20:00";
   const reminderEnd = document.querySelector("#habitReminderEnd").value || "21:00";
-  state.habits.push({ id: makeId(), name, icon: selectedIcon, color: selectedColor, reminderStart, reminderEnd, createdAt: dateKey(new Date()) });
-  saveState(); render(); document.querySelector("#habitDialog").close(); showToast("新习惯已加入今天的清单");
+  const habit = editingHabitId ? state.habits.find(item => item.id === editingHabitId) : null;
+  if (habit) Object.assign(habit, { name, icon: selectedIcon, color: selectedColor, reminderStart, reminderEnd });
+  else state.habits.push({ id: makeId(), name, icon: selectedIcon, color: selectedColor, reminderStart, reminderEnd, createdAt: dateKey(new Date()) });
+  saveState(); render(); document.querySelector("#habitDialog").close(); showToast(habit ? "习惯已更新" : "新习惯已加入今天的清单"); editingHabitId = null;
 }
 
 function deleteHabit(id) {
   const habit = state.habits.find(item => item.id === id);
   if (!habit || !confirm(`删除“${habit.name}”？历史打卡记录也会一并清除。`)) return;
+  undoSnapshot = structuredClone(state);
   state.habits = state.habits.filter(item => item.id !== id);
   Object.keys(state.checks).forEach(key => state.checks[key] = state.checks[key].filter(item => item !== id));
-  saveState(); render(); showToast("习惯已删除");
+  saveState(); render(); showToast("习惯已删除", true);
 }
 
 function addCalendarReminder() {
@@ -672,9 +701,26 @@ function toggleMobilePanel(view) {
   setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 30);
 }
 
-function showToast(message) {
-  const toast = document.querySelector("#toast"); toast.textContent = message; toast.classList.add("show");
+function showToast(message, canUndo = false) {
+  const toast = document.querySelector("#toast"); toast.replaceChildren(document.createTextNode(message));
+  if (canUndo) { const button = document.createElement("button"); button.textContent = "撤销"; button.dataset.undoDelete = "true"; toast.appendChild(button); }
+  toast.classList.add("show");
   clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), state }, null, 2)], { type: "application/json" });
+  const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `日日备份-${dateKey(new Date())}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  showToast("备份已导出");
+}
+
+async function importBackup(file) {
+  try {
+    const parsed = JSON.parse(await file.text());
+    const incoming = parsed.state || parsed;
+    if (!incoming?.habits || !incoming?.checks) throw new Error("文件格式不正确");
+    undoSnapshot = structuredClone(state); state = incoming; state.layout = normalizeLayout(state.layout); saveState(); render(); showToast("备份已导入", true);
+  } catch (error) { showToast(`导入失败：${error.message}`); }
 }
 
 function escapeHtml(value) { const div = document.createElement("div"); div.textContent = value; return div.innerHTML; }
@@ -690,9 +736,12 @@ document.addEventListener("click", event => {
   if (target.dataset.planDate) { selectedPlanDate = target.dataset.planDate; renderPlanner(); }
   if (target.dataset.taskCheck) togglePlanTask(target.dataset.taskCheck);
   if (target.dataset.taskDelete) deletePlanTask(target.dataset.taskDelete);
+  if (target.dataset.taskEdit) openTaskDialog(target.dataset.taskEdit);
   if (target.hasAttribute("data-goal-details")) toggleMobilePanel("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
+  if (target.dataset.editHabit) openDialog(target.dataset.editHabit);
+  if (target.dataset.undoDelete && undoSnapshot) { state = undoSnapshot; undoSnapshot = null; saveState(); render(); showToast("已撤销"); }
   if (target.hasAttribute("data-open-goal")) openGoalDialog();
   if (target.dataset.goalPlus) changeGoalProgress(target.dataset.goalPlus, 1);
   if (target.dataset.goalQuick) changeGoalProgress(target.dataset.goalQuick, 1);
@@ -728,7 +777,7 @@ document.querySelector("#reminderTime").addEventListener("change", event => { st
 document.querySelector("#addCalendarReminder").addEventListener("click", addCalendarReminder);
 document.querySelector("#prevMonth").addEventListener("click", () => { calendarCursor.setMonth(calendarCursor.getMonth() - 1); renderCalendar(); });
 document.querySelector("#nextMonth").addEventListener("click", () => { calendarCursor.setMonth(calendarCursor.getMonth() + 1); renderCalendar(); });
-document.querySelector("#addPlanTask").addEventListener("click", openTaskDialog);
+document.querySelector("#addPlanTask").addEventListener("click", () => openTaskDialog());
 document.querySelector("#plannerPrev").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() - 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() - 1); } renderPlanner(); });
 document.querySelector("#plannerNext").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() + 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() + 1); } renderPlanner(); });
 document.querySelector("#plannerToday").addEventListener("click", () => { plannerCursor = new Date(); selectedPlanDate = dateKey(plannerCursor); renderPlanner(); });
@@ -753,6 +802,9 @@ document.querySelector("#syncNow").addEventListener("click", () => cloudPull());
 document.querySelector("#disconnectSync").addEventListener("click", () => {
   syncKey = ""; localStorage.removeItem(SYNC_KEY_STORAGE); document.querySelector("#syncCode").value = ""; setSyncStatus("已断开同步");
 });
+document.querySelector("#exportData").addEventListener("click", exportBackup);
+document.querySelector("#importData").addEventListener("click", () => document.querySelector("#importDataFile").click());
+document.querySelector("#importDataFile").addEventListener("change", event => { const file = event.target.files[0]; if (file) importBackup(file); event.target.value = ""; });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && syncKey) cloudPull(); });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js");
