@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=15">
+  <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
   <div class="app-shell">
@@ -43,36 +43,43 @@
           </div>
         </div>
 
-        <section class="summary-strip" aria-label="打卡概览">
+        <div class="layout-toolbar">
+          <button class="text-button" id="editLayoutButton">编辑布局</button>
+          <button class="text-button" id="resetLayoutButton" hidden>恢复默认</button>
+        </div>
+
+        <section class="summary-strip today-module" data-layout-module="summary" aria-label="打卡概览">
           <div><span class="metric-icon coral">◆</span><strong id="doneCount">0</strong><small>今日完成</small></div>
           <div><span class="metric-icon yellow">↗</span><strong id="bestStreak">0</strong><small>最长连续</small></div>
           <div><span class="metric-icon blue">●</span><strong id="weekRate">0%</strong><small>本周完成率</small></div>
         </section>
 
-        <section class="mobile-hub" aria-label="更多内容">
+        <section class="mobile-hub today-module" data-layout-module="shortcuts" aria-label="更多内容">
           <p class="eyebrow">MORE</p><h2>继续看看</h2>
           <button data-mobile-panel="history" aria-expanded="false"><span><strong>记录</strong><small>查看打卡日历和过去的节奏</small></span><b>›</b></button>
           <button data-mobile-panel="habits" aria-expanded="false"><span><strong>习惯</strong><small>管理任务和独立提醒时间</small></span><b>›</b></button>
           <button data-mobile-panel="goals" aria-expanded="false"><span><strong>目标</strong><small>推进这一周、这个月和今年</small></span><b>›</b></button>
         </section>
 
-        <section class="delight-grid" aria-label="目标推进">
+        <section class="delight-grid today-module" data-layout-module="focus" aria-label="目标推进">
           <article class="focus-panel" id="focusPanel"></article>
         </section>
 
-        <div class="section-heading">
-          <div><p class="eyebrow">TODAY'S HABITS</p><h2>今日清单</h2></div>
-          <button class="text-button" id="quickAddButton">＋ 添加习惯</button>
-        </div>
-        <div class="habit-list" id="habitList"></div>
-        <div class="empty-state" id="todayEmpty" hidden>
-          <div class="empty-visual"><span>✓</span></div>
-          <h3>从一个小习惯开始</h3>
-          <p>每天做到一点点，就已经很了不起。</p>
-          <button class="primary-button" data-open-add>添加第一个习惯</button>
-        </div>
+        <section class="today-module habits-module" data-layout-module="habits">
+          <div class="section-heading">
+            <div><p class="eyebrow">TODAY'S HABITS</p><h2>今日清单</h2></div>
+            <button class="text-button" id="quickAddButton">＋ 添加习惯</button>
+          </div>
+          <div class="habit-list" id="habitList"></div>
+          <div class="empty-state" id="todayEmpty" hidden>
+            <div class="empty-visual"><span>✓</span></div>
+            <h3>从一个小习惯开始</h3>
+            <p>每天做到一点点，就已经很了不起。</p>
+            <button class="primary-button" data-open-add>添加第一个习惯</button>
+          </div>
+        </section>
 
-        <section class="week-panel">
+        <section class="week-panel today-module" data-layout-module="week">
           <div class="section-heading compact">
             <div><p class="eyebrow">THIS WEEK</p><h2>本周节奏</h2></div>
             <span id="weekSummary">0 次完成</span>
@@ -163,6 +170,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=15"></script>
+  <script src="app.js?v=16"></script>
 </body>
 </html>

@@ -90,6 +90,13 @@ h3 { margin: 0; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin: 46px 0 18px; }
 .section-heading.compact { margin-top: 0; }
 .section-heading > span { color: var(--muted); font-size: 13px; }
+.layout-toolbar { display: flex; justify-content: flex-end; gap: 14px; margin: -10px 0 8px; }
+.today-module { position: relative; }
+.module-controls { display: none; position: absolute; z-index: 5; top: 8px; right: 8px; gap: 6px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: var(--shadow); }
+.module-controls button { width: 34px; height: 34px; border: 0; border-radius: 5px; background: var(--surface-2); color: var(--text); font-size: 18px; cursor: pointer; }
+.module-controls button:disabled { opacity: .3; cursor: default; }
+.layout-editing .today-module { outline: 2px dashed var(--primary); outline-offset: 5px; }
+.layout-editing .module-controls { display: flex; }
 .text-button { padding: 8px 0; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--primary); font-weight: 750; cursor: pointer; }
 .habit-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .habit-card { min-height: 112px; display: grid; grid-template-columns: 52px 1fr 44px; align-items: center; gap: 14px; padding: 19px; border: 1px solid var(--line); background: var(--surface); transition: transform .18s, border-color .18s, opacity .18s; }
@@ -203,13 +210,7 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .summary-strip strong { font-size: 20px; }
   .summary-strip small { font-size: 10px; }
   #todayView.active { display: flex; flex-direction: column; }
-  #todayView.active > .page-heading { order: 1; }
-  #todayView.active > .summary-strip { order: 2; }
-  #todayView.active > .mobile-hub { order: 3; }
-  #todayView.active > .section-heading { order: 4; margin-top: 28px; }
-  #todayView.active > .habit-list, #todayView.active > .empty-state { order: 5; }
-  #todayView.active > .delight-grid { order: 6; }
-  #todayView.active > .week-panel { order: 7; }
+  .layout-toolbar { margin-top: -6px; }
   .section-heading { margin-top: 30px; }
   .habit-list { grid-template-columns: 1fr; }
   .delight-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 30px 0 0; padding: 0; overflow: visible; }

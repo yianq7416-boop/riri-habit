@@ -1,4 +1,5 @@
 const STORAGE_KEY = "riri-habit-state-v1";
+const DEFAULT_LAYOUT = ["summary", "shortcuts", "focus", "habits", "week"];
 const icons = ["水", "步", "书", "眠", "心", "练", "果", "记"];
 const colors = ["#1e8a65", "#e06c55", "#d3a22f", "#4f83c2", "#8a68ae", "#d45d88"];
 const surprises = [
@@ -27,6 +28,7 @@ const seed = {
   ],
   checks: {},
   goals: [],
+  layout: [...DEFAULT_LAYOUT],
   theme: "light"
 };
 
@@ -35,6 +37,7 @@ let calendarCursor = new Date();
 let selectedIcon = icons[0];
 let selectedColor = colors[0];
 let currentGoalFilter = "all";
+let layoutEditing = false;
 
 function dateKey(date) {
   const year = date.getFullYear();
@@ -48,6 +51,7 @@ function loadState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved?.habits) return createSeed();
     saved.goals ||= [];
+    saved.layout = normalizeLayout(saved.layout);
     return saved;
   } catch { return createSeed(); }
 }
@@ -62,6 +66,10 @@ function createSeed() {
 }
 
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function normalizeLayout(layout) {
+  const valid = Array.isArray(layout) ? layout.filter(item => DEFAULT_LAYOUT.includes(item)) : [];
+  return [...new Set([...valid, ...DEFAULT_LAYOUT])];
+}
 function checkedFor(key) { return state.checks[key] || []; }
 function isChecked(habitId, key = dateKey(new Date())) { return checkedFor(key).includes(habitId); }
 
@@ -73,6 +81,39 @@ function render() {
   renderCalendar();
   renderManage();
   renderGoals();
+  applyLayout();
+}
+
+function applyLayout() {
+  state.layout = normalizeLayout(state.layout);
+  const parent = document.querySelector("#todayView");
+  state.layout.forEach((name, index) => {
+    const module = parent.querySelector(`[data-layout-module="${name}"]`);
+    if (!module) return;
+    let controls = module.querySelector(":scope > .module-controls");
+    if (!controls) {
+      controls = document.createElement("div");
+      controls.className = "module-controls";
+      controls.innerHTML = `<button data-layout-move="up" aria-label="向上移动" title="向上移动">↑</button><button data-layout-move="down" aria-label="向下移动" title="向下移动">↓</button>`;
+      module.appendChild(controls);
+    }
+    controls.querySelector('[data-layout-move="up"]').disabled = index === 0;
+    controls.querySelector('[data-layout-move="down"]').disabled = index === state.layout.length - 1;
+    parent.appendChild(module);
+  });
+  parent.classList.toggle("layout-editing", layoutEditing);
+  document.querySelector("#editLayoutButton").textContent = layoutEditing ? "完成" : "编辑布局";
+  document.querySelector("#resetLayoutButton").hidden = !layoutEditing;
+}
+
+function moveLayoutModule(button) {
+  const module = button.closest("[data-layout-module]");
+  const index = state.layout.indexOf(module.dataset.layoutModule);
+  const next = index + (button.dataset.layoutMove === "up" ? -1 : 1);
+  if (index < 0 || next < 0 || next >= state.layout.length) return;
+  [state.layout[index], state.layout[next]] = [state.layout[next], state.layout[index]];
+  saveState(); applyLayout();
+  module.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function renderToday() {
@@ -424,6 +465,7 @@ document.addEventListener("click", event => {
   const target = event.target.closest("button"); if (!target) return;
   if (target.dataset.view) switchView(target.dataset.view);
   if (target.dataset.mobilePanel) toggleMobilePanel(target.dataset.mobilePanel);
+  if (target.dataset.layoutMove) moveLayoutModule(target);
   if (target.hasAttribute("data-goal-details")) toggleMobilePanel("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
@@ -452,6 +494,8 @@ document.addEventListener("change", event => {
   if (event.target.dataset.reminderEnd) updateHabitReminder(event.target.dataset.reminderEnd, "reminderEnd", event.target.value);
 });
 document.querySelector("#themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; saveState(); render(); });
+document.querySelector("#editLayoutButton").addEventListener("click", () => { layoutEditing = !layoutEditing; applyLayout(); });
+document.querySelector("#resetLayoutButton").addEventListener("click", () => { state.layout = [...DEFAULT_LAYOUT]; saveState(); applyLayout(); showToast("已恢复默认布局"); });
 document.querySelector("#reminderTime").value = state.reminderTime || "20:30";
 document.querySelector("#reminderTime").addEventListener("change", event => { state.reminderTime = event.target.value; saveState(); });
 document.querySelector("#addCalendarReminder").addEventListener("click", addCalendarReminder);
