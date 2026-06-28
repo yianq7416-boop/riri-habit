@@ -173,6 +173,28 @@ dialog select { width: 100%; height: 48px; margin-top: 8px; padding: 0 13px; bor
 .mobile-hub > button b { color: var(--primary); font-size: 25px; font-weight: 400; transition: transform .2s; }
 .mobile-hub > button[aria-expanded="true"] { border-color: var(--primary); background: var(--primary-soft); }
 .mobile-hub > button[aria-expanded="true"] b { transform: rotate(90deg); }
+.planner-panel { margin-top: 38px; padding: 24px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+.planner-top, .planner-nav, .planner-list-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.segmented-control { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); }
+.segmented-control button { min-height: 34px; padding: 0 13px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.segmented-control button.active { background: var(--surface); color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+.planner-nav { justify-content: center; margin: 20px 0 12px; }
+.planner-nav strong { min-width: 150px; text-align: center; }
+.planner-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.planner-day { min-height: 62px; padding: 7px 5px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--text); cursor: pointer; }
+.planner-day span, .planner-day small { display: block; }
+.planner-day small { margin-top: 5px; color: var(--primary); font-size: 10px; }
+.planner-day.selected { border-color: var(--primary); background: var(--primary-soft); }
+.planner-day.today span { font-weight: 800; color: var(--primary); }
+.planner-day.blank { visibility: hidden; }
+.planner-list-head { margin-top: 22px; }
+.planner-list-head small { color: var(--muted); }
+.planner-task-list { display: grid; gap: 8px; margin-top: 12px; }
+.planner-task { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 5px; }
+.planner-task.done strong { color: var(--muted); text-decoration: line-through; }
+.planner-task strong { flex: 1; }
+.planner-task .check-button { width: 34px; height: 34px; }
+.planner-empty { padding: 18px 0; color: var(--muted); text-align: center; }
 .view.mobile-inline { display: block; padding-top: 12px; }
 .view.mobile-inline .page-heading.simple { padding-top: 18px; }
 dialog { width: min(92vw, 480px); padding: 0; border: 0; border-radius: 8px; background: var(--surface); color: var(--text); box-shadow: 0 26px 90px rgba(0,0,0,.22); }
@@ -212,6 +234,10 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .summary-strip small { font-size: 10px; }
   #todayView.active { display: flex; flex-direction: column; }
   .layout-toolbar { margin-top: -6px; }
+  .planner-panel { padding: 16px; }
+  .planner-top { align-items: flex-start; }
+  .planner-grid { gap: 3px; }
+  .planner-day { min-height: 54px; padding: 6px 2px; font-size: 12px; }
   .section-heading { margin-top: 30px; }
   .habit-list { grid-template-columns: 1fr; }
   .delight-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 30px 0 0; padding: 0; overflow: visible; }

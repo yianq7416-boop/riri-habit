@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
   <div class="app-shell">
@@ -59,6 +59,24 @@
           <button data-mobile-panel="history" aria-expanded="false"><span><strong>记录</strong><small>查看打卡日历和过去的节奏</small></span><b>›</b></button>
           <button data-mobile-panel="habits" aria-expanded="false"><span><strong>习惯</strong><small>管理任务和独立提醒时间</small></span><b>›</b></button>
           <button data-mobile-panel="goals" aria-expanded="false"><span><strong>目标</strong><small>推进这一周、这个月和今年</small></span><b>›</b></button>
+        </section>
+
+        <section class="planner-panel today-module" data-layout-module="planner">
+          <div class="planner-top">
+            <div><p class="eyebrow">PLANNER</p><h2>计划清单</h2></div>
+            <div class="segmented-control" aria-label="计划范围">
+              <button class="active" data-planner-view="week">一周</button>
+              <button data-planner-view="month">一个月</button>
+            </div>
+          </div>
+          <div class="planner-nav">
+            <button class="icon-button" id="plannerPrev" aria-label="上一段" title="上一段">‹</button>
+            <strong id="plannerTitle"></strong>
+            <button class="icon-button" id="plannerNext" aria-label="下一段" title="下一段">›</button>
+          </div>
+          <div class="planner-grid" id="plannerGrid"></div>
+          <div class="planner-list-head"><div><small id="plannerSelectedLabel"></small><h3>当天任务</h3></div><button class="primary-button" id="addPlanTask">＋ 添加任务</button></div>
+          <div class="planner-task-list" id="plannerTaskList"></div>
         </section>
 
         <section class="delight-grid today-module" data-layout-module="focus" aria-label="目标推进">
@@ -169,7 +187,15 @@
       <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveGoal" value="default">开始这个目标</button></div>
     </form>
   </dialog>
+  <dialog id="taskDialog">
+    <form method="dialog" id="taskForm">
+      <div class="dialog-header"><div><p class="eyebrow">NEW TASK</p><h2>添加日期任务</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
+      <label>要做什么<input id="taskTitle" maxlength="40" required placeholder="例如：预约体检"></label>
+      <label>安排日期<input id="taskDate" type="date" required></label>
+      <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveTask" value="default">添加任务</button></div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "riri-habit-state-v1";
-const DEFAULT_LAYOUT = ["summary", "shortcuts", "focus", "habits", "week"];
+const DEFAULT_LAYOUT = ["summary", "shortcuts", "planner", "focus", "habits", "week"];
 const icons = ["水", "步", "书", "眠", "心", "练", "果", "记"];
 const colors = ["#1e8a65", "#e06c55", "#d3a22f", "#4f83c2", "#8a68ae", "#d45d88"];
 const surprises = [
@@ -27,6 +27,7 @@ const seed = {
     { id: makeId(), name: "十二点前睡觉", icon: "眠", color: colors[4], createdAt: dateKey(new Date(Date.now() - 8 * 86400000)) }
   ],
   checks: {},
+  tasks: [],
   goals: [],
   layout: [...DEFAULT_LAYOUT],
   theme: "light"
@@ -34,6 +35,9 @@ const seed = {
 
 let state = loadState();
 let calendarCursor = new Date();
+let plannerCursor = new Date();
+let plannerView = "week";
+let selectedPlanDate = dateKey(new Date());
 let selectedIcon = icons[0];
 let selectedColor = colors[0];
 let currentGoalFilter = "all";
@@ -51,6 +55,7 @@ function loadState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved?.habits) return createSeed();
     saved.goals ||= [];
+    saved.tasks ||= [];
     saved.layout = normalizeLayout(saved.layout);
     return saved;
   } catch { return createSeed(); }
@@ -68,7 +73,12 @@ function createSeed() {
 function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function normalizeLayout(layout) {
   const valid = Array.isArray(layout) ? layout.filter(item => DEFAULT_LAYOUT.includes(item)) : [];
-  return [...new Set([...valid, ...DEFAULT_LAYOUT])];
+  const merged = [...new Set([...valid, ...DEFAULT_LAYOUT])];
+  if (!valid.includes("planner")) {
+    merged.splice(merged.indexOf("planner"), 1);
+    merged.splice(merged.indexOf("shortcuts") + 1, 0, "planner");
+  }
+  return merged;
 }
 function checkedFor(key) { return state.checks[key] || []; }
 function isChecked(habitId, key = dateKey(new Date())) { return checkedFor(key).includes(habitId); }
@@ -78,6 +88,7 @@ function render() {
   document.querySelector("#themeToggle span").textContent = state.theme === "dark" ? "☀" : "☾";
   renderToday();
   renderWeek();
+  renderPlanner();
   renderCalendar();
   renderManage();
   renderGoals();
@@ -131,7 +142,7 @@ function renderToday() {
   document.querySelector("#bestStreak").textContent = calculateBestStreak();
   document.querySelector("#weekRate").textContent = `${calculateWeekRate()}%`;
   const list = document.querySelector("#habitList");
-  list.innerHTML = state.habits.map(habit => {
+  const habitCards = state.habits.map(habit => {
     const doneToday = done.includes(habit.id);
     return `<article class="habit-card ${doneToday ? "done" : ""}" style="--habit-color:${habit.color}">
       <div class="habit-icon" aria-hidden="true">${habit.icon}</div>
@@ -139,7 +150,14 @@ function renderToday() {
       <button class="check-button" data-check="${habit.id}" aria-label="${doneToday ? "取消" : "完成"}${escapeHtml(habit.name)}" title="${doneToday ? "取消打卡" : "打卡"}">✓</button>
     </article>`;
   }).join("");
-  document.querySelector("#todayEmpty").hidden = state.habits.length > 0;
+  const todayTasks = state.tasks.filter(task => task.date === today);
+  const taskCards = todayTasks.map(task => `<article class="habit-card ${task.done ? "done" : ""}" style="--habit-color:#e06c55">
+    <div class="habit-icon" aria-hidden="true">事</div>
+    <div class="habit-copy"><h3>${escapeHtml(task.title)}</h3><p>日期任务 · 今天${task.done ? "已完成" : "待完成"}</p></div>
+    <button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}" title="${task.done ? "取消完成" : "完成任务"}">✓</button>
+  </article>`).join("");
+  list.innerHTML = habitCards + taskCards;
+  document.querySelector("#todayEmpty").hidden = state.habits.length + todayTasks.length > 0;
   renderDelight(today, done.length);
 }
 
@@ -202,6 +220,69 @@ function renderWeek() {
     return `<div class="bar-column ${dateKey(date) === dateKey(today) ? "today" : ""}"><div class="bar-track" title="${count} 次完成"><div class="bar-fill" style="height:${height}%"></div></div><span>${label}</span></div>`;
   }).join("");
   document.querySelector("#weekSummary").textContent = `${total} 次完成`;
+}
+
+function startOfWeek(date) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  result.setDate(result.getDate() - ((result.getDay() + 6) % 7));
+  return result;
+}
+
+function renderPlanner() {
+  const grid = document.querySelector("#plannerGrid");
+  const dates = [];
+  if (plannerView === "week") {
+    const start = startOfWeek(plannerCursor);
+    for (let index = 0; index < 7; index++) { const day = new Date(start); day.setDate(start.getDate() + index); dates.push(day); }
+    document.querySelector("#plannerTitle").textContent = `${dates[0].getMonth() + 1}月${dates[0].getDate()}日 – ${dates[6].getMonth() + 1}月${dates[6].getDate()}日`;
+  } else {
+    const year = plannerCursor.getFullYear();
+    const month = plannerCursor.getMonth();
+    const first = new Date(year, month, 1);
+    const leading = (first.getDay() + 6) % 7;
+    for (let index = 0; index < leading; index++) dates.push(null);
+    for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day++) dates.push(new Date(year, month, day));
+    document.querySelector("#plannerTitle").textContent = `${year}年${month + 1}月`;
+  }
+  const labels = ["日", "一", "二", "三", "四", "五", "六"];
+  grid.innerHTML = dates.map(date => {
+    if (!date) return `<span class="planner-day blank"></span>`;
+    const key = dateKey(date);
+    const count = state.tasks.filter(task => task.date === key).length;
+    return `<button class="planner-day ${key === selectedPlanDate ? "selected" : ""} ${key === dateKey(new Date()) ? "today" : ""}" data-plan-date="${key}"><span>${plannerView === "week" ? `${labels[date.getDay()]} ${date.getDate()}` : date.getDate()}</span>${count ? `<small>${count} 项</small>` : ""}</button>`;
+  }).join("");
+  document.querySelectorAll("[data-planner-view]").forEach(button => button.classList.toggle("active", button.dataset.plannerView === plannerView));
+  const selected = new Date(`${selectedPlanDate}T00:00:00`);
+  document.querySelector("#plannerSelectedLabel").textContent = `${selected.getMonth() + 1}月${selected.getDate()}日`;
+  const tasks = state.tasks.filter(task => task.date === selectedPlanDate);
+  document.querySelector("#plannerTaskList").innerHTML = tasks.length ? tasks.map(task => `<article class="planner-task ${task.done ? "done" : ""}"><button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}">✓</button><strong>${escapeHtml(task.title)}</strong><button class="icon-button" data-task-delete="${task.id}" aria-label="删除${escapeHtml(task.title)}" title="删除">×</button></article>`).join("") : `<p class="planner-empty">这一天还没有任务</p>`;
+}
+
+function openTaskDialog() {
+  document.querySelector("#taskDate").value = selectedPlanDate;
+  document.querySelector("#taskTitle").value = "";
+  document.querySelector("#taskDialog").showModal();
+  setTimeout(() => document.querySelector("#taskTitle").focus(), 50);
+}
+
+function addPlanTask() {
+  const title = document.querySelector("#taskTitle").value.trim();
+  const date = document.querySelector("#taskDate").value;
+  if (!title || !date) return;
+  state.tasks.push({ id: makeId(), title, date, done: false });
+  selectedPlanDate = date;
+  plannerCursor = new Date(`${date}T00:00:00`);
+  saveState(); render(); document.querySelector("#taskDialog").close(); showToast("任务已安排");
+}
+
+function togglePlanTask(id) {
+  const task = state.tasks.find(item => item.id === id); if (!task) return;
+  task.done = !task.done; saveState(); render();
+}
+
+function deletePlanTask(id) {
+  state.tasks = state.tasks.filter(item => item.id !== id); saveState(); render(); showToast("任务已删除");
 }
 
 function renderCalendar() {
@@ -468,6 +549,10 @@ document.addEventListener("click", event => {
   if (target.dataset.mobilePanel) toggleMobilePanel(target.dataset.mobilePanel);
   if (target.dataset.layoutMove) moveLayoutModule(target);
   if (target.hasAttribute("data-layout-done")) { layoutEditing = false; applyLayout(); }
+  if (target.dataset.plannerView) { plannerView = target.dataset.plannerView; renderPlanner(); }
+  if (target.dataset.planDate) { selectedPlanDate = target.dataset.planDate; renderPlanner(); }
+  if (target.dataset.taskCheck) togglePlanTask(target.dataset.taskCheck);
+  if (target.dataset.taskDelete) deletePlanTask(target.dataset.taskDelete);
   if (target.hasAttribute("data-goal-details")) toggleMobilePanel("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
@@ -487,6 +572,8 @@ document.querySelector("#saveHabit").addEventListener("click", event => { event.
 document.querySelector("#habitForm").addEventListener("submit", event => { event.preventDefault(); addHabit(); });
 document.querySelector("#saveGoal").addEventListener("click", event => { event.preventDefault(); addGoal(); });
 document.querySelector("#goalForm").addEventListener("submit", event => { event.preventDefault(); addGoal(); });
+document.querySelector("#saveTask").addEventListener("click", event => { event.preventDefault(); addPlanTask(); });
+document.querySelector("#taskForm").addEventListener("submit", event => { event.preventDefault(); addPlanTask(); });
 document.querySelector("#goalPeriod").addEventListener("change", event => {
   const presets = { week: [5, "建议：一周目标拆成 3–7 次清晰行动。"], month: [12, "建议：一个月目标拆成 8–20 次可以完成的行动。"], year: [52, "建议：一年目标按每周一次行动开始。"] };
   document.querySelector("#goalTarget").value = presets[event.target.value][0]; document.querySelector("#goalHint").textContent = presets[event.target.value][1];
@@ -503,6 +590,9 @@ document.querySelector("#reminderTime").addEventListener("change", event => { st
 document.querySelector("#addCalendarReminder").addEventListener("click", addCalendarReminder);
 document.querySelector("#prevMonth").addEventListener("click", () => { calendarCursor.setMonth(calendarCursor.getMonth() - 1); renderCalendar(); });
 document.querySelector("#nextMonth").addEventListener("click", () => { calendarCursor.setMonth(calendarCursor.getMonth() + 1); renderCalendar(); });
+document.querySelector("#addPlanTask").addEventListener("click", openTaskDialog);
+document.querySelector("#plannerPrev").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() - 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() - 1); } renderPlanner(); });
+document.querySelector("#plannerNext").addEventListener("click", () => { if (plannerView === "week") plannerCursor.setDate(plannerCursor.getDate() + 7); else { plannerCursor.setDate(1); plannerCursor.setMonth(plannerCursor.getMonth() + 1); } renderPlanner(); });
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js");
 render();
