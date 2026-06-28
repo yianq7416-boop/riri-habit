@@ -135,7 +135,7 @@ function renderFocusGoal() {
   const goal = activeGoals[0];
   const percent = Math.min(100, Math.round(goal.progress / goal.target * 100));
   const days = Math.ceil((new Date(`${goal.deadline}T23:59:59`) - new Date()) / 86400000);
-  panel.innerHTML = `<div class="delight-top"><div><p class="eyebrow">TODAY'S DIRECTION</p><h2>今日推进</h2></div><span>${days < 0 ? "已到期" : `剩 ${days} 天`}</span></div><h3 class="focus-goal-title">${escapeHtml(goal.title)}</h3><p class="focus-goal-why">${escapeHtml(goal.why)}</p><div class="focus-progress-label"><span>${goal.progress}/${goal.target} 次行动</span><strong>${percent}%</strong></div><div class="focus-progress"><i style="width:${percent}%"></i></div><div class="focus-actions"><button class="primary-button" data-goal-quick="${goal.id}">完成一次行动</button><button class="secondary-button" data-view="goals">详情</button></div>`;
+  panel.innerHTML = `<div class="delight-top"><div><p class="eyebrow">TODAY'S DIRECTION</p><h2>今日推进</h2></div><span>${days < 0 ? "已到期" : `剩 ${days} 天`}</span></div><h3 class="focus-goal-title">${escapeHtml(goal.title)}</h3><p class="focus-goal-why">${escapeHtml(goal.why)}</p><div class="focus-progress-label"><span>${goal.progress}/${goal.target} 次行动</span><strong>${percent}%</strong></div><div class="focus-progress"><i style="width:${percent}%"></i></div><div class="focus-actions"><button class="primary-button" data-goal-quick="${goal.id}">完成一次行动</button><button class="secondary-button" data-goal-details>详情</button></div>`;
 }
 
 function hourGreeting(hour) {
@@ -393,9 +393,24 @@ function updateHabitReminder(id, field, value) {
 }
 
 function switchView(view) {
+  document.querySelectorAll(".view.mobile-inline").forEach(item => item.classList.remove("mobile-inline"));
+  document.querySelectorAll("[data-mobile-panel]").forEach(item => item.setAttribute("aria-expanded", "false"));
   document.querySelectorAll(".view").forEach(item => item.classList.toggle("active", item.id === `${view}View`));
   document.querySelectorAll(".nav-item[data-view]").forEach(item => item.classList.toggle("active", item.dataset.view === view));
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function toggleMobilePanel(view) {
+  const target = document.querySelector(`#${view}View`);
+  const trigger = document.querySelector(`[data-mobile-panel="${view}"]`);
+  const wasOpen = target.classList.contains("mobile-inline");
+  document.querySelectorAll(".view.mobile-inline").forEach(item => item.classList.remove("mobile-inline"));
+  document.querySelectorAll("[data-mobile-panel]").forEach(item => item.setAttribute("aria-expanded", "false"));
+  if (wasOpen) return;
+  target.classList.remove("active");
+  target.classList.add("mobile-inline");
+  trigger.setAttribute("aria-expanded", "true");
+  setTimeout(() => target.scrollIntoView({ behavior: "smooth", block: "start" }), 30);
 }
 
 function showToast(message) {
@@ -408,6 +423,8 @@ function escapeHtml(value) { const div = document.createElement("div"); div.text
 document.addEventListener("click", event => {
   const target = event.target.closest("button"); if (!target) return;
   if (target.dataset.view) switchView(target.dataset.view);
+  if (target.dataset.mobilePanel) toggleMobilePanel(target.dataset.mobilePanel);
+  if (target.hasAttribute("data-goal-details")) window.innerWidth <= 700 ? toggleMobilePanel("goals") : switchView("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
   if (target.hasAttribute("data-open-goal")) openGoalDialog();

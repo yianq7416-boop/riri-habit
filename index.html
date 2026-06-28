@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <div class="app-shell">
@@ -71,6 +71,12 @@
             <span id="weekSummary">0 次完成</span>
           </div>
           <div class="week-chart" id="weekChart"></div>
+        </section>
+        <section class="mobile-hub" aria-label="更多内容">
+          <p class="eyebrow">MORE</p><h2>继续看看</h2>
+          <button data-mobile-panel="history" aria-expanded="false"><span><strong>记录</strong><small>查看打卡日历和过去的节奏</small></span><b>›</b></button>
+          <button data-mobile-panel="habits" aria-expanded="false"><span><strong>习惯</strong><small>管理任务和独立提醒时间</small></span><b>›</b></button>
+          <button data-mobile-panel="goals" aria-expanded="false"><span><strong>目标</strong><small>推进这一周、这个月和今年</small></span><b>›</b></button>
         </section>
       </section>
 
@@ -156,6 +162,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
