@@ -424,7 +424,7 @@ document.addEventListener("click", event => {
   const target = event.target.closest("button"); if (!target) return;
   if (target.dataset.view) switchView(target.dataset.view);
   if (target.dataset.mobilePanel) toggleMobilePanel(target.dataset.mobilePanel);
-  if (target.hasAttribute("data-goal-details")) window.innerWidth <= 700 ? toggleMobilePanel("goals") : switchView("goals");
+  if (target.hasAttribute("data-goal-details")) toggleMobilePanel("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
   if (target.hasAttribute("data-open-goal")) openGoalDialog();

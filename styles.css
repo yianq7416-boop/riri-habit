@@ -24,7 +24,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(30, 107, 80,
 .topbar { height: 84px; display: flex; align-items: center; gap: 28px; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 800; font-size: 20px; }
 .brand-mark { width: 35px; aspect-ratio: 1; display: grid; place-items: center; background: var(--text); color: var(--bg); border-radius: 7px; font-size: 17px; }
-.desktop-nav { display: flex; gap: 4px; margin: auto; }
+.desktop-nav { display: none; }
 .nav-item { border: 0; background: transparent; cursor: pointer; color: var(--muted); font-weight: 650; }
 .desktop-nav .nav-item { padding: 9px 16px; border-radius: 7px; }
 .desktop-nav .nav-item.active { color: var(--primary); background: var(--primary-soft); }
@@ -156,7 +156,17 @@ dialog select { width: 100%; height: 48px; margin-top: 8px; padding: 0 13px; bor
 .form-hint { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
 .delete-button { border: 0; background: transparent; color: var(--coral); cursor: pointer; font-weight: 700; }
 .mobile-nav { display: none; }
-.mobile-hub { display: none; }
+.mobile-hub { display: grid; gap: 8px; margin-top: 38px; padding-top: 26px; border-top: 1px solid var(--line); }
+.mobile-hub h2 { margin-bottom: 8px; }
+.mobile-hub > button { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); text-align: left; cursor: pointer; }
+.mobile-hub > button span { display: grid; gap: 4px; }
+.mobile-hub > button strong { font-size: 15px; }
+.mobile-hub > button small { color: var(--muted); font-size: 11px; }
+.mobile-hub > button b { color: var(--primary); font-size: 25px; font-weight: 400; transition: transform .2s; }
+.mobile-hub > button[aria-expanded="true"] { border-color: var(--primary); background: var(--primary-soft); }
+.mobile-hub > button[aria-expanded="true"] b { transform: rotate(90deg); }
+.view.mobile-inline { display: block; padding-top: 12px; }
+.view.mobile-inline .page-heading.simple { padding-top: 18px; }
 dialog { width: min(92vw, 480px); padding: 0; border: 0; border-radius: 8px; background: var(--surface); color: var(--text); box-shadow: 0 26px 90px rgba(0,0,0,.22); }
 dialog::backdrop { background: rgba(26, 31, 27, .48); backdrop-filter: blur(3px); }
 dialog form { padding: 26px; }
@@ -227,13 +237,6 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .mobile-nav .nav-item { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; }
   .mobile-nav .nav-item span { font-size: 21px; }
   .mobile-nav .nav-item.active { color: var(--primary); }
-  .view.mobile-inline { display: block; padding-top: 12px; }
-  .view.mobile-inline .page-heading.simple { padding-top: 18px; }
-  .mobile-hub { display: grid; gap: 8px; margin-top: 38px; padding-top: 26px; border-top: 1px solid var(--line); }
-  .mobile-hub h2 { margin-bottom: 8px; }
-  .mobile-hub > button { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); text-align: left; cursor: pointer; }
-  .mobile-hub > button span { display: grid; gap: 4px; }.mobile-hub > button strong { font-size: 15px; }.mobile-hub > button small { color: var(--muted); font-size: 11px; }.mobile-hub > button b { color: var(--primary); font-size: 25px; font-weight: 400; transition: transform .2s; }
-  .mobile-hub > button[aria-expanded="true"] { border-color: var(--primary); background: var(--primary-soft); }.mobile-hub > button[aria-expanded="true"] b { transform: rotate(90deg); }
   .toast { bottom: 86px; }
 }
 
