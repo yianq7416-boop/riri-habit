@@ -94,7 +94,7 @@ function applyLayout() {
     if (!controls) {
       controls = document.createElement("div");
       controls.className = "module-controls";
-      controls.innerHTML = `<button data-layout-move="up" aria-label="向上移动" title="向上移动">↑</button><button data-layout-move="down" aria-label="向下移动" title="向下移动">↓</button>`;
+      controls.innerHTML = `<button data-layout-move="up" aria-label="向上移动" title="向上移动">↑</button><button data-layout-move="down" aria-label="向下移动" title="向下移动">↓</button><button data-layout-done aria-label="完成布局编辑" title="完成">×</button>`;
       module.appendChild(controls);
     }
     controls.querySelector('[data-layout-move="up"]').disabled = index === 0;
@@ -466,6 +466,7 @@ document.addEventListener("click", event => {
   if (target.dataset.view) switchView(target.dataset.view);
   if (target.dataset.mobilePanel) toggleMobilePanel(target.dataset.mobilePanel);
   if (target.dataset.layoutMove) moveLayoutModule(target);
+  if (target.hasAttribute("data-layout-done")) { layoutEditing = false; applyLayout(); }
   if (target.hasAttribute("data-goal-details")) toggleMobilePanel("goals");
   if (target.dataset.check) toggleCheck(target.dataset.check);
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
