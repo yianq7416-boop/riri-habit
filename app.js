@@ -102,6 +102,8 @@ function renderToday() {
 }
 
 function renderDelight(today, doneCount) {
+  renderFocusGoal();
+  return;
   const dayNumber = Number(today.replaceAll("-", ""));
   const surprise = surprises[dayNumber % surprises.length];
   const opened = state.mysteryOpened === today;
@@ -433,9 +435,6 @@ document.addEventListener("change", event => {
   if (event.target.dataset.reminderEnd) updateHabitReminder(event.target.dataset.reminderEnd, "reminderEnd", event.target.value);
 });
 document.querySelector("#themeToggle").addEventListener("click", () => { state.theme = state.theme === "dark" ? "light" : "dark"; saveState(); render(); });
-document.querySelector("#openMystery").addEventListener("click", openMystery);
-document.querySelector("#mysteryCard").addEventListener("click", () => { if (state.mysteryOpened !== dateKey(new Date())) openMystery(); });
-document.querySelector("#openBonus").addEventListener("click", openBonus);
 document.querySelector("#reminderTime").value = state.reminderTime || "20:30";
 document.querySelector("#reminderTime").addEventListener("change", event => { state.reminderTime = event.target.value; saveState(); });
 document.querySelector("#addCalendarReminder").addEventListener("click", addCalendarReminder);

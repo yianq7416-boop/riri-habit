@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
   <div class="app-shell">
@@ -49,16 +49,7 @@
           <div><span class="metric-icon blue">●</span><strong id="weekRate">0%</strong><small>本周完成率</small></div>
         </section>
 
-        <section class="delight-grid" aria-label="每日惊喜与目标推进">
-          <article class="mystery-panel" id="mysteryPanel">
-            <div class="delight-top"><div><p class="eyebrow">DAILY SURPRISE</p><h2>今日盲盒</h2></div><span class="rarity-tag" id="rarityTag">今日限定</span></div>
-            <div class="mystery-card" id="mysteryCard">
-              <div class="mystery-seal" aria-hidden="true">?</div>
-              <div class="mystery-content"><small id="mysteryType"></small><strong id="mysteryText"></strong></div>
-            </div>
-            <button class="primary-button" id="openMystery">拆开今天的小惊喜</button>
-            <button class="bonus-button" id="openBonus" hidden></button>
-          </article>
+        <section class="delight-grid" aria-label="目标推进">
           <article class="focus-panel" id="focusPanel"></article>
         </section>
 
@@ -165,6 +156,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

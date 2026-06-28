@@ -53,7 +53,7 @@ h3 { margin: 0; }
 .summary-strip small { align-self: start; color: var(--muted); }
 .metric-icon { grid-row: 1 / 3; align-self: center; width: 42px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; color: white; }
 .metric-icon.coral { background: var(--coral); }.metric-icon.yellow { background: var(--yellow); }.metric-icon.blue { background: var(--blue); }
-.delight-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 14px; margin-top: 16px; }
+.delight-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
 .mystery-panel, .garden-panel, .focus-panel { min-height: 330px; padding: 24px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
 .delight-top { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
 .delight-top > span, .rarity-tag { color: var(--muted); font-size: 11px; font-weight: 750; }
