@@ -3,8 +3,8 @@ const SYNC_KEY_STORAGE = "riri-habit-sync-key";
 const SUPABASE_URL = "https://vxafxavnhtucexxcfjdk.supabase.co";
 const SUPABASE_KEY = "sb_publishable_zKu6CHH83OQTBuXATaRcQQ_S2a7fH1C";
 const DEFAULT_LAYOUT = ["summary", "shortcuts", "planner", "focus", "habits", "week"];
-const COLLAPSIBLE_MODULES = { shortcuts: "记录 / 习惯 / 目标", planner: "计划清单", focus: "目标推进", habits: "今日清单", week: "本周复盘" };
-const DEFAULT_COLLAPSED = ["shortcuts", "focus", "week"];
+const COLLAPSIBLE_MODULES = { planner: "计划清单", focus: "目标推进", habits: "今日清单", week: "本周复盘" };
+const DEFAULT_COLLAPSED = ["focus", "week"];
 const icons = ["水", "步", "书", "眠", "心", "练", "果", "记"];
 const colors = ["#1e8a65", "#e06c55", "#d3a22f", "#4f83c2", "#8a68ae", "#d45d88"];
 const surprises = [
@@ -183,6 +183,7 @@ function render() {
 function applyLayout() {
   state.layout = normalizeLayout(state.layout);
   state.collapsedModules ||= [...DEFAULT_COLLAPSED];
+  state.collapsedModules = state.collapsedModules.filter(name => COLLAPSIBLE_MODULES[name]);
   const parent = document.querySelector("#todayView");
   state.layout.forEach((name, index) => {
     const module = parent.querySelector(`[data-layout-module="${name}"]`);
