@@ -120,20 +120,20 @@ function renderDelight(today, doneCount) {
   bonusButton.textContent = bonusOpened ? bonusSurprises[dayNumber % bonusSurprises.length] : doneCount ? "打开打卡奖励卡" : "完成任意一次打卡，解锁奖励卡";
   bonusButton.dataset.locked = doneCount ? "false" : "true";
 
-  const total = Object.values(state.checks).reduce((sum, ids) => sum + ids.filter(id => state.habits.some(h => h.id === id)).length, 0);
-  const stages = [0, 3, 8, 16, 30];
-  let stage = stages.findLastIndex(value => total >= value);
-  stage = Math.max(0, stage);
-  const levels = ["一颗种子", "冒出嫩芽", "长出新叶", "绿意渐浓", "花开啦"];
-  const copies = ["你的第一颗种子已经埋下。一次打卡，就是一点阳光。", "小芽探出了头，它记得你每一次回来。", "叶子正在舒展，慢慢来，它不会因为断签而消失。", "这里已经有了一小片绿意，都是你做过的小事。", "花园开花了。之后的每次打卡，都会让它更热闹。"];
-  document.querySelector("#gardenLevel").textContent = levels[stage];
-  document.querySelector("#gardenCopy").textContent = `${copies[stage]} · 累计 ${total} 次`;
-  const scene = document.querySelector("#gardenScene");
-  scene.className = `garden-scene stage-${stage}`;
-  const next = stages[Math.min(stage + 1, stages.length - 1)];
-  const previous = stages[stage];
-  const progress = stage === stages.length - 1 ? 100 : Math.round((total - previous) / (next - previous) * 100);
-  document.querySelector("#gardenProgress").style.width = `${Math.max(4, progress)}%`;
+  renderFocusGoal();
+}
+
+function renderFocusGoal() {
+  const panel = document.querySelector("#focusPanel");
+  const activeGoals = (state.goals || []).filter(goal => !goal.completed).sort((a, b) => a.deadline.localeCompare(b.deadline));
+  if (!activeGoals.length) {
+    panel.innerHTML = `<div class="delight-top"><div><p class="eyebrow">TODAY'S DIRECTION</p><h2>今日推进</h2></div></div><div class="focus-empty"><strong>还没有正在进行的目标</strong><p>写下想改变或学会的事，让每天的行动有方向。</p><button class="primary-button" data-open-goal>创建一个目标</button></div>`;
+    return;
+  }
+  const goal = activeGoals[0];
+  const percent = Math.min(100, Math.round(goal.progress / goal.target * 100));
+  const days = Math.ceil((new Date(`${goal.deadline}T23:59:59`) - new Date()) / 86400000);
+  panel.innerHTML = `<div class="delight-top"><div><p class="eyebrow">TODAY'S DIRECTION</p><h2>今日推进</h2></div><span>${days < 0 ? "已到期" : `剩 ${days} 天`}</span></div><h3 class="focus-goal-title">${escapeHtml(goal.title)}</h3><p class="focus-goal-why">${escapeHtml(goal.why)}</p><div class="focus-progress-label"><span>${goal.progress}/${goal.target} 次行动</span><strong>${percent}%</strong></div><div class="focus-progress"><i style="width:${percent}%"></i></div><div class="focus-actions"><button class="primary-button" data-goal-quick="${goal.id}">完成一次行动</button><button class="secondary-button" data-view="goals">详情</button></div>`;
 }
 
 function hourGreeting(hour) {
@@ -410,6 +410,7 @@ document.addEventListener("click", event => {
   if (target.dataset.delete) deleteHabit(target.dataset.delete);
   if (target.hasAttribute("data-open-goal")) openGoalDialog();
   if (target.dataset.goalPlus) changeGoalProgress(target.dataset.goalPlus, 1);
+  if (target.dataset.goalQuick) changeGoalProgress(target.dataset.goalQuick, 1);
   if (target.dataset.goalMinus) changeGoalProgress(target.dataset.goalMinus, -1);
   if (target.dataset.goalDelete) deleteGoal(target.dataset.goalDelete);
   if (target.dataset.goalFilter) { currentGoalFilter = target.dataset.goalFilter; document.querySelectorAll("[data-goal-filter]").forEach(item => item.classList.toggle("active", item === target)); renderGoals(); }

@@ -54,7 +54,7 @@ h3 { margin: 0; }
 .metric-icon { grid-row: 1 / 3; align-self: center; width: 42px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; color: white; }
 .metric-icon.coral { background: var(--coral); }.metric-icon.yellow { background: var(--yellow); }.metric-icon.blue { background: var(--blue); }
 .delight-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 14px; margin-top: 16px; }
-.mystery-panel, .garden-panel { min-height: 330px; padding: 24px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
+.mystery-panel, .garden-panel, .focus-panel { min-height: 330px; padding: 24px; border: 1px solid var(--line); background: var(--surface); overflow: hidden; }
 .delight-top { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
 .delight-top > span, .rarity-tag { color: var(--muted); font-size: 11px; font-weight: 750; }
 .rarity-tag { padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; }
@@ -81,6 +81,12 @@ h3 { margin: 0; }
 .garden-scene.stage-1 .plant-one { --scale:.65; }.garden-scene.stage-2 .plant-one, .garden-scene.stage-2 .plant-two { --scale:.82; }.garden-scene.stage-3 .plant { --scale:1; }.garden-scene.stage-4 .plant { --scale:1; --bloom:1; }
 .garden-copy { min-height: 34px; margin: 0 0 12px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .garden-progress { height: 5px; overflow: hidden; background: var(--surface-2); }.garden-progress i { display: block; height: 100%; background: var(--primary); transition: width .4s; }
+.focus-panel { display: flex; flex-direction: column; }
+.focus-goal-title { margin: 25px 0 7px; font-size: 22px; line-height: 1.35; }.focus-goal-why { min-height: 42px; margin: 0 0 22px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.focus-progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); font-size: 11px; }.focus-progress-label strong { color: var(--text); }
+.focus-progress { height: 8px; overflow: hidden; border-radius: 4px; background: var(--surface-2); }.focus-progress i { display: block; height: 100%; background: var(--primary); }
+.focus-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: auto; padding-top: 24px; }.focus-actions button { min-height: 42px; }
+.focus-empty { flex: 1; display: grid; align-content: center; gap: 10px; text-align: center; }.focus-empty strong { font-size: 18px; }.focus-empty p { margin: 0; color: var(--muted); font-size: 12px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin: 46px 0 18px; }
 .section-heading.compact { margin-top: 0; }
 .section-heading > span { color: var(--muted); font-size: 13px; }
@@ -194,9 +200,9 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   #todayView.active > .week-panel { order: 6; }
   .section-heading { margin-top: 30px; }
   .habit-list { grid-template-columns: 1fr; }
-  .delight-grid { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 88%; gap: 10px; margin: 30px -16px 0; padding: 0 16px 8px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
-  .delight-grid::-webkit-scrollbar { display: none; }
-  .mystery-panel, .garden-panel { min-height: 292px; padding: 18px; scroll-snap-align: start; }
+  .delight-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 30px 0 0; padding: 0; overflow: visible; }
+  .focus-panel { order: -1; min-height: 260px; }
+  .mystery-panel, .garden-panel, .focus-panel { min-height: 292px; padding: 18px; }
   .mystery-card { min-height: 118px; margin: 14px 0 12px; }
   .garden-scene { height: 142px; margin-left: -18px; margin-right: -18px; }
   .habit-card { min-height: 84px; padding: 13px 15px; }
