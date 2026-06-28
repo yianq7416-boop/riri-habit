@@ -205,11 +205,11 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   #todayView.active { display: flex; flex-direction: column; }
   #todayView.active > .page-heading { order: 1; }
   #todayView.active > .summary-strip { order: 2; }
-  #todayView.active > .section-heading { order: 3; margin-top: 28px; }
-  #todayView.active > .habit-list, #todayView.active > .empty-state { order: 4; }
-  #todayView.active > .delight-grid { order: 5; }
-  #todayView.active > .week-panel { order: 6; }
-  #todayView.active > .mobile-hub { order: 7; }
+  #todayView.active > .mobile-hub { order: 3; }
+  #todayView.active > .section-heading { order: 4; margin-top: 28px; }
+  #todayView.active > .habit-list, #todayView.active > .empty-state { order: 5; }
+  #todayView.active > .delight-grid { order: 6; }
+  #todayView.active > .week-panel { order: 7; }
   .section-heading { margin-top: 30px; }
   .habit-list { grid-template-columns: 1fr; }
   .delight-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 30px 0 0; padding: 0; overflow: visible; }
