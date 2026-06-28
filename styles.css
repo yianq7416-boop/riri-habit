@@ -213,8 +213,12 @@ dialog select { width: 100%; height: 48px; margin-top: 8px; padding: 0 13px; bor
 .planner-task-list { display: grid; gap: 8px; margin-top: 12px; }
 .planner-task { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 5px; }
 .planner-task.done strong { color: var(--muted); text-decoration: line-through; }
-.planner-task strong { flex: 1; }
+.planner-task-copy { min-width: 0; flex: 1; display: grid; gap: 3px; }
+.planner-task-copy strong { overflow-wrap: anywhere; }
+.planner-task-copy small { color: var(--muted); font-size: 11px; }
+.planner-task.done .planner-task-copy strong { color: var(--muted); text-decoration: line-through; }
 .planner-task .check-button { width: 34px; height: 34px; }
+.task-calendar-button { min-height: 36px; padding: 0 10px; white-space: nowrap; }
 .planner-empty { padding: 18px 0; color: var(--muted); text-align: center; }
 .view.mobile-inline { display: block; padding-top: 12px; }
 .view.mobile-inline .page-heading.simple { padding-top: 18px; }
@@ -264,6 +268,8 @@ body.dark { color-scheme: dark; --bg: #181b18; --surface: #222622; --surface-2: 
   .planner-top { align-items: flex-start; }
   .planner-grid { gap: 3px; }
   .planner-day { min-height: 54px; padding: 6px 2px; font-size: 12px; }
+  .planner-task { flex-wrap: wrap; }
+  .task-calendar-button { margin-left: 44px; }
   .section-heading { margin-top: 30px; }
   .habit-list { grid-template-columns: 1fr; }
   .delight-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 30px 0 0; padding: 0; overflow: visible; }

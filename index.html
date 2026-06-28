@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="日日">
   <title>日日 · 习惯打卡</title>
   <link rel="manifest" href="manifest.webmanifest?v=5">
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
   <div class="app-shell">
@@ -194,6 +194,7 @@
       <div class="dialog-header"><div><p class="eyebrow">NEW TASK</p><h2>添加日期任务</h2></div><button class="icon-button" value="cancel" aria-label="关闭" title="关闭">×</button></div>
       <label>要做什么<input id="taskTitle" maxlength="40" required placeholder="例如：预约体检"></label>
       <label>安排日期<input id="taskDate" type="date" required></label>
+      <label>提醒时间<input id="taskReminderTime" type="time" value="09:00" required></label>
       <div class="dialog-actions"><button class="secondary-button" value="cancel">取消</button><button class="primary-button" id="saveTask" value="default">添加任务</button></div>
     </form>
   </dialog>
@@ -208,6 +209,6 @@
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>

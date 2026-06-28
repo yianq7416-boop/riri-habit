@@ -262,7 +262,7 @@ function renderToday() {
   const todayTasks = state.tasks.filter(task => task.date === today);
   const taskCards = todayTasks.map(task => `<article class="habit-card ${task.done ? "done" : ""}" style="--habit-color:#e06c55">
     <div class="habit-icon" aria-hidden="true">事</div>
-    <div class="habit-copy"><h3>${escapeHtml(task.title)}</h3><p>日期任务 · 今天${task.done ? "已完成" : "待完成"}</p></div>
+    <div class="habit-copy"><h3>${escapeHtml(task.title)}</h3><p>日期任务 · ${task.reminderTime || "09:00"} · 今天${task.done ? "已完成" : "待完成"}</p></div>
     <button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}" title="${task.done ? "取消完成" : "完成任务"}">✓</button>
   </article>`).join("");
   list.innerHTML = habitCards + taskCards;
@@ -375,12 +375,13 @@ function renderPlanner() {
   const selected = new Date(`${selectedPlanDate}T00:00:00`);
   document.querySelector("#plannerSelectedLabel").textContent = `${selected.getMonth() + 1}月${selected.getDate()}日`;
   const tasks = state.tasks.filter(task => task.date === selectedPlanDate);
-  document.querySelector("#plannerTaskList").innerHTML = tasks.length ? tasks.map(task => `<article class="planner-task ${task.done ? "done" : ""}"><button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}">✓</button><strong>${escapeHtml(task.title)}</strong><button class="icon-button" data-task-delete="${task.id}" aria-label="删除${escapeHtml(task.title)}" title="删除">×</button></article>`).join("") : `<p class="planner-empty">这一天还没有任务</p>`;
+  document.querySelector("#plannerTaskList").innerHTML = tasks.length ? tasks.map(task => `<article class="planner-task ${task.done ? "done" : ""}"><button class="check-button" data-task-check="${task.id}" aria-label="${task.done ? "取消完成" : "完成"}${escapeHtml(task.title)}">✓</button><div class="planner-task-copy"><strong>${escapeHtml(task.title)}</strong><small>${task.reminderTime || "09:00"} 提醒</small></div><button class="secondary-button task-calendar-button" data-task-calendar="${task.id}">加入日历</button><button class="icon-button" data-task-delete="${task.id}" aria-label="删除${escapeHtml(task.title)}" title="删除">×</button></article>`).join("") : `<p class="planner-empty">这一天还没有任务</p>`;
 }
 
 function openTaskDialog() {
   document.querySelector("#taskDate").value = selectedPlanDate;
   document.querySelector("#taskTitle").value = "";
+  document.querySelector("#taskReminderTime").value = "09:00";
   document.querySelector("#taskDialog").showModal();
   setTimeout(() => document.querySelector("#taskTitle").focus(), 50);
 }
@@ -388,8 +389,9 @@ function openTaskDialog() {
 function addPlanTask() {
   const title = document.querySelector("#taskTitle").value.trim();
   const date = document.querySelector("#taskDate").value;
+  const reminderTime = document.querySelector("#taskReminderTime").value;
   if (!title || !date) return;
-  state.tasks.push({ id: makeId(), title, date, done: false });
+  state.tasks.push({ id: makeId(), title, date, reminderTime, done: false });
   selectedPlanDate = date;
   plannerCursor = new Date(`${date}T00:00:00`);
   saveState(); render(); document.querySelector("#taskDialog").close(); showToast("任务已安排");
@@ -629,6 +631,21 @@ function downloadHabitReminder(habit) {
   showToast("任务提醒已生成，请选择用日历打开");
 }
 
+function escapeCalendarText(value) {
+  return String(value).replaceAll("\\", "\\\\").replaceAll("\n", "\\n").replaceAll(",", "\\,").replaceAll(";", "\\;");
+}
+
+function downloadTaskReminder(task) {
+  const start = new Date(`${task.date}T${task.reminderTime || "09:00"}:00`);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  const title = escapeCalendarText(task.title);
+  const calendar = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Riri Habit//Task Reminder//CN", "BEGIN:VEVENT", `UID:${makeId()}@riri-habit`, `DTSTART:${formatCalendarDate(start)}`, `DTEND:${formatCalendarDate(end)}`, `SUMMARY:${title}`, `DESCRIPTION:打开日日，完成：${title}`, "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", `DESCRIPTION:该完成 ${title} 了`, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const blob = new Blob([calendar], { type: "text/calendar;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob); link.download = `${task.title}-提醒.ics`; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  showToast("提醒已生成，请选择用日历打开");
+}
+
 function updateHabitReminder(id, field, value) {
   const habit = state.habits.find(item => item.id === id); if (!habit) return;
   habit[field] = value; saveState(); renderToday(); showToast("提醒时段已保存");
@@ -683,6 +700,7 @@ document.addEventListener("click", event => {
   if (target.dataset.goalDelete) deleteGoal(target.dataset.goalDelete);
   if (target.dataset.goalFilter) { currentGoalFilter = target.dataset.goalFilter; document.querySelectorAll("[data-goal-filter]").forEach(item => item.classList.toggle("active", item === target)); renderGoals(); }
   if (target.dataset.habitCalendar) { const habit = state.habits.find(item => item.id === target.dataset.habitCalendar); if (habit) downloadHabitReminder(habit); }
+  if (target.dataset.taskCalendar) { const task = state.tasks.find(item => item.id === target.dataset.taskCalendar); if (task) downloadTaskReminder(task); }
   if (target.hasAttribute("data-open-add") || target.id === "quickAddButton") openDialog();
   if (target.dataset.icon) { selectedIcon = target.dataset.icon; renderOptions(); }
   if (target.dataset.color) { selectedColor = target.dataset.color; renderOptions(); }
